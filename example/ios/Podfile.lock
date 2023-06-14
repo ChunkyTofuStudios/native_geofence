@@ -2,21 +2,27 @@ PODS:
   - Flutter (1.0.0)
   - geofencing (0.0.1):
     - Flutter
+  - permission_handler_apple (9.0.4):
+    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - geofencing (from `.symlinks/plugins/geofencing/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   geofencing:
     :path: ".symlinks/plugins/geofencing/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   geofencing: 98674d4c10508e8bbf7678623d48c2a4172559ee
+  permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
 
-PODFILE CHECKSUM: 3dbe063e9c90a5d7c9e4e76e70a821b9e2c1d271
+PODFILE CHECKSUM: 922f57cf4c65925f00fe2498e38e8268bc12e49a
 
-COCOAPODS: 1.9.1
+COCOAPODS: 1.12.1

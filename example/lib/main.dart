@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
   @pragma('vm:entry-point')
   static void callback(List<String> ids, Location l, GeofenceEvent e) async {
     print('Fences: $ids Location $l Event: $e');
-    final SendPort send =
+    final SendPort? send =
         IsolateNameServer.lookupPortByName('geofencing_send_port');
     send?.send(e.toString());
   }
@@ -99,14 +99,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   String numberValidator(String value) {
-    if (value == null) {
-      return null;
-    }
-    final num a = num.tryParse(value);
+    final num? a = num.tryParse(value);
     if (a == null) {
       return '"$value" is not a valid number';
     }
-    return null;
+    return a.toString();
   }
 
   @override
@@ -143,7 +140,7 @@ class _MyAppState extends State<MyApp> {
                       controller:
                           TextEditingController(text: latitude.toString()),
                       onChanged: (String s) {
-                        latitude = double.tryParse(s);
+                        latitude = double.tryParse(s)!;
                       },
                     ),
                     TextField(
@@ -153,7 +150,7 @@ class _MyAppState extends State<MyApp> {
                         controller:
                             TextEditingController(text: longitude.toString()),
                         onChanged: (String s) {
-                          longitude = double.tryParse(s);
+                          longitude = double.tryParse(s)!;
                         }),
                     TextField(
                         decoration: const InputDecoration(hintText: 'Radius'),
@@ -161,7 +158,7 @@ class _MyAppState extends State<MyApp> {
                         controller:
                             TextEditingController(text: radius.toString()),
                         onChanged: (String s) {
-                          radius = double.tryParse(s);
+                          radius = double.tryParse(s)!;
                         }),
                   ]))),
     );

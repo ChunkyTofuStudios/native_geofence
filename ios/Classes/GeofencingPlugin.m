@@ -197,6 +197,7 @@ static BOOL backgroundIsolateRun = NO;
   
   [self setCallbackHandleForRegionId:callbackHandle regionId:identifier];
   [self->_locationManager startMonitoringForRegion:region];
+  [self->_locationManager requestStateForRegion:region];
 }
 
 - (BOOL)removeGeofence:(NSArray *)arguments {
@@ -209,6 +210,34 @@ static BOOL backgroundIsolateRun = NO;
     }
   }
   return NO;
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+  didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region {
+    if (state == CLRegionStateInside) {
+        if (initialized) {
+          [self sendLocationEvent:region eventType:kEnterEvent];
+        } else {
+          NSDictionary *dict = @{
+            kRegionKey: region,
+            kEventType: @(kEnterEvent)
+          };
+          [_eventQueue addObject:dict];
+        }
+    } else if (state == CLRegionStateOutside) {
+        if (initialized) {
+            [self sendLocationEvent:region eventType:kExitEvent];
+        } else {
+          NSDictionary *dict = @{
+            kRegionKey: region,
+            kEventType: @(kExitEvent)
+          };
+          [_eventQueue addObject:dict];
+        }
+    } else if (state == CLRegionStateUnknown) {
+        NSLog(@"Unknown state for geofence: %@", region);
+        return;
+    }
 }
 
 - (NSArray*)getMonitoredRegionIds:()arguments{
