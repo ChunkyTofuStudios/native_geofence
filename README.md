@@ -19,8 +19,16 @@ geofencing:
 ```xml
 <receiver android:name="io.flutter.plugins.geofencing.GeofencingBroadcastReceiver"
     android:enabled="true" android:exported="true"/>
+
 <service android:name="io.flutter.plugins.geofencing.GeofencingService"
     android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
+
+<receiver android:name="io.flutter.plugins.geofencing.GeofencingRebootBroadcastReceiver"
+    android:enabled="true" android:exported="true" android:label="BootReceiver">
+    <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+    </intent-filter>
+</receiver>
 ```
 
 Also request the correct permissions for geofencing:
