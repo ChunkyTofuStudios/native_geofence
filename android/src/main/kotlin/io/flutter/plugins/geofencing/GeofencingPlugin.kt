@@ -45,20 +45,21 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
     @JvmStatic
     val PERSISTENT_GEOFENCES_IDS = "persistent_geofences_ids"
     @JvmStatic
-    val BOOTCOMPLETED_RECEIVED_MARKER = "bootcompleted_received"
+    val BOOTCOMPLETED_RECEIVED_MARKER = "flutter.bootcompleted_received"
     @JvmStatic
     private val sGeofenceCacheLock = Object()
 
     @JvmStatic
     fun reRegisterAfterReboot(context: Context) {
       synchronized(sGeofenceCacheLock) {
-        var p = context.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
 
         // Write a bootreceivedmarker to sharedprefs
-        p.edit()
+        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+          .edit()
           .putBoolean(BOOTCOMPLETED_RECEIVED_MARKER, true)
           .apply()
 
+        var p = context.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
         var persistentGeofences = p.getStringSet(PERSISTENT_GEOFENCES_IDS, null)
         if (persistentGeofences == null) {
           return
