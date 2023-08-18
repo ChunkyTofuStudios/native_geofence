@@ -17,7 +17,7 @@ class GeofencingRebootBroadcastReceiver : BroadcastReceiver() {
         // Write a bootreceivedmarker to sharedprefs
         context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(BOOTCOMPLETED_RECEIVED_MARKER, true)
+            .putBoolean(GeofencingPlugin.BOOTCOMPLETED_RECEIVED_MARKER, true)
             .apply()
 
 
