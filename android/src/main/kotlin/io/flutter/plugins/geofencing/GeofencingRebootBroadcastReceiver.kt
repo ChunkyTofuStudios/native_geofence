@@ -12,7 +12,16 @@ import android.util.Log;
 class GeofencingRebootBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         //if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            Log.e("GEOFENCING REBOOT", "Reregistering geofences!")
+
+        Log.e("GEOFENCING REBOOT", "Setting boot completed marker!")
+        // Write a bootreceivedmarker to sharedprefs
+        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(BOOTCOMPLETED_RECEIVED_MARKER, true)
+            .apply()
+
+
+        Log.e("GEOFENCING REBOOT", "Reregistering geofences!")
             GeofencingPlugin.reRegisterAfterReboot(context)
         //}
     }

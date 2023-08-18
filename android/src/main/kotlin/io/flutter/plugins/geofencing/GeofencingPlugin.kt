@@ -52,13 +52,6 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
     @JvmStatic
     fun reRegisterAfterReboot(context: Context) {
       synchronized(sGeofenceCacheLock) {
-
-        // Write a bootreceivedmarker to sharedprefs
-        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-          .edit()
-          .putBoolean(BOOTCOMPLETED_RECEIVED_MARKER, true)
-          .apply()
-
         var p = context.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
         var persistentGeofences = p.getStringSet(PERSISTENT_GEOFENCES_IDS, null)
         if (persistentGeofences == null) {
