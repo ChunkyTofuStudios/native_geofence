@@ -124,7 +124,7 @@ class GeofencingManager {
   /// This function can be called when the autostart feature is not working
   /// as it should. This way you can handle that case from the app.
   static Future<void> reRegisterAfterReboot() async =>
-      await _background.invokeMethod('GeofencingService.reRegisterAfterReboot');
+      await _background.invokeMethod('GeofencingPlugin.reRegisterAfterReboot');
 
   /// Demote the geofencing service from a foreground service to a background
   /// service.
