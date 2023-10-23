@@ -13,7 +13,7 @@ import 'package:geofencing/src/location.dart';
 @pragma('vm:entry-point') 
 void callbackDispatcher() {
   const MethodChannel _backgroundChannel =
-      MethodChannel('plugins.flutter.io/geofencing_plugin_background');
+      MethodChannel('plugins.cloudalert.eu/geofencing_plugin_background');
   WidgetsFlutterBinding.ensureInitialized();
 
   _backgroundChannel.setMethodCallHandler((MethodCall call) async {

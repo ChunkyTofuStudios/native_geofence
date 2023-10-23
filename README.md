@@ -1,4 +1,4 @@
-**Author's Note:** this plugin is not officially supported and is meant to be used as an example. Please feel free to pull it into your own projects, but _there is no official version hosted on pub.dev and support may be limited_. If you run into any issues running this sample, please file an issue or, even better, submit a pull request!
+**Author's Note:** this plugin is not officially supported. Please feel free to pull it into your own projects, but _there is no official version hosted on pub.dev and support may be limited_. If you run into any issues running this sample, please file an issue or, even better, submit a pull request!
 
 What is geofencing? 
 [here](https://developer.android.com/training/location/geofencing)
@@ -17,13 +17,13 @@ Add the following lines to your `AndroidManifest.xml` to register the background
 geofencing:
 
 ```xml
-<receiver android:name="io.flutter.plugins.geofencing.GeofencingBroadcastReceiver"
+<receiver android:name="eu.cloudalert.plugins.geofencing.GeofencingBroadcastReceiver"
     android:enabled="true" android:exported="true"/>
 
-<service android:name="io.flutter.plugins.geofencing.GeofencingService"
+<service android:name="eu.cloudalert.plugins.geofencing.GeofencingService"
     android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
 
-<receiver android:name="io.flutter.plugins.geofencing.GeofencingRebootBroadcastReceiver"
+<receiver android:name="eu.cloudalert.plugins.geofencing.GeofencingRebootBroadcastReceiver"
     android:enabled="true" android:exported="true" android:label="BootReceiver">
     <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED"/>

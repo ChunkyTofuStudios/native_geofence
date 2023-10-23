@@ -1,4 +1,4 @@
-group 'io.flutter.plugins.geofencing'
+group 'eu.cloudalert.plugins.geofencing'
 version '1.0-SNAPSHOT'
 
 buildscript {

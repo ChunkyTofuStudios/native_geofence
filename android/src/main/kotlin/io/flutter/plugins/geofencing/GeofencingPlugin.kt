@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package io.flutter.plugins.geofencing
+package eu.cloudalert.plugins.geofencing
 
 import android.Manifest
 import android.app.Activity
@@ -254,7 +254,7 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     mContext = binding.getApplicationContext()
     mGeofencingClient = LocationServices.getGeofencingClient(mContext!!)
-    val channel = MethodChannel(binding.getBinaryMessenger(), "plugins.flutter.io/geofencing_plugin")
+    val channel = MethodChannel(binding.getBinaryMessenger(), "plugins.cloudalert.eu/geofencing_plugin")
     channel.setMethodCallHandler(this)
   }
 

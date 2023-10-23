@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package io.flutter.plugins.geofencing
+package eu.cloudalert.plugins.geofencing
 
 import android.content.Context
 import android.content.Intent
@@ -91,7 +91,7 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
             }
         }
         mBackgroundChannel = MethodChannel(sBackgroundFlutterEngine!!.getDartExecutor().getBinaryMessenger(),
-                "plugins.flutter.io/geofencing_plugin_background")
+                "plugins.cloudalert.eu/geofencing_plugin_background")
         mBackgroundChannel.setMethodCallHandler(this)
     }
 

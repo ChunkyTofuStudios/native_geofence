@@ -19,7 +19,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: io.flutter.plugins.geofencing
+        package: eu.cloudalert.plugins.geofencing
         pluginClass: GeofencingPlugin
       ios:
         pluginClass: GeofencingPlugin

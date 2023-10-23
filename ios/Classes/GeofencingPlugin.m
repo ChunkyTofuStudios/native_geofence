@@ -150,12 +150,12 @@ static BOOL backgroundIsolateRun = NO;
   _headlessRunner = [[FlutterEngine alloc] initWithName:@"GeofencingIsolate" project:nil allowHeadlessExecution:YES];
   _registrar = registrar;
 
-  _mainChannel = [FlutterMethodChannel methodChannelWithName:@"plugins.flutter.io/geofencing_plugin"
+  _mainChannel = [FlutterMethodChannel methodChannelWithName:@"plugins.cloudalert.eu/geofencing_plugin"
                                              binaryMessenger:[registrar messenger]];
   [registrar addMethodCallDelegate:self channel:_mainChannel];
 
   _callbackChannel =
-      [FlutterMethodChannel methodChannelWithName:@"plugins.flutter.io/geofencing_plugin_background"
+      [FlutterMethodChannel methodChannelWithName:@"plugins.cloudalert.eu/geofencing_plugin_background"
                                   binaryMessenger:_headlessRunner];
   return self;
 }

@@ -1,4 +1,4 @@
-# geofencing_example
+# geofencing
 
 Demonstrates how to use the geofencing plugin.
 

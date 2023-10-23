@@ -111,7 +111,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: const Text('Flutter Geofencing Example'),
+            title: const Text('CloudAlert Geofencing'),
           ),
           body: Container(
               padding: const EdgeInsets.all(20.0),

@@ -1,4 +1,4 @@
-name: geofencing_example
+name: geofencing
 description: Demonstrates how to use the geofencing plugin.
 publish_to: 'none'
 

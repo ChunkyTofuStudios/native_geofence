@@ -99,9 +99,9 @@ class GeofenceRegion {
 
 class GeofencingManager {
   static const MethodChannel _channel =
-      MethodChannel('plugins.flutter.io/geofencing_plugin');
+      MethodChannel('plugins.cloudalert.eu/geofencing_plugin');
   static const MethodChannel _background =
-      MethodChannel('plugins.flutter.io/geofencing_plugin_background');
+      MethodChannel('plugins.cloudalert.eu/geofencing_plugin_background');
 
   /// Initialize the plugin and request relevant permissions from the user.
   static Future<void> initialize() async {
