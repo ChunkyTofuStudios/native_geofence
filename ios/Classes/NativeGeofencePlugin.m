@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file
 
-#import "GeofencingPlugin.h"
+#import "NativeGeofencePlugin.h"
 
 #import <CoreLocation/CoreLocation.h>
 
-@implementation GeofencingPlugin {
+@implementation NativeGeofencePlugin {
   CLLocationManager *_locationManager;
   FlutterEngine *_headlessRunner;
   FlutterMethodChannel *_callbackChannel;
@@ -22,7 +22,7 @@ static const NSString *kEventType = @"event_type";
 static const int kEnterEvent = 1;
 static const int kExitEvent = 2;
 static const NSString *kCallbackMapping = @"geofence_region_callback_mapping";
-static GeofencingPlugin *instance = nil;
+static NativeGeofencePlugin *instance = nil;
 static FlutterPluginRegistrantCallback registerPlugins = nil;
 static BOOL initialized = NO;
 static BOOL backgroundIsolateRun = NO;
@@ -31,7 +31,7 @@ static BOOL backgroundIsolateRun = NO;
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
   @synchronized(self) {
     if (instance == nil) {
-      instance = [[GeofencingPlugin alloc] init:registrar];
+      instance = [[NativeGeofencePlugin alloc] init:registrar];
       [registrar addApplicationDelegate:instance];
     }
   }
@@ -43,12 +43,12 @@ static BOOL backgroundIsolateRun = NO;
 
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
   NSArray *arguments = call.arguments;
-  if ([@"GeofencingPlugin.initializeService" isEqualToString:call.method]) {
+  if ([@"NativeGeofencePlugin.initializeService" isEqualToString:call.method]) {
     NSAssert(arguments.count == 1,
-             @"Invalid argument count for 'GeofencingPlugin.initializeService'");
-    [self startGeofencingService:[arguments[0] longValue]];
+             @"Invalid argument count for 'NativeGeofencePlugin.initializeService'");
+    [self startNativeGeofenceService:[arguments[0] longValue]];
     result(@(YES));
-  } else if ([@"GeofencingService.initialized" isEqualToString:call.method]) {
+  } else if ([@"NativeGeofenceService.initialized" isEqualToString:call.method]) {
     @synchronized(self) {
       initialized = YES;
         // Send the geofence events that occurred while the background
@@ -62,14 +62,14 @@ static BOOL backgroundIsolateRun = NO;
         }
     }
     result(nil);
-  } else if ([@"GeofencingPlugin.registerGeofence" isEqualToString:call.method]) {
+  } else if ([@"NativeGeofencePlugin.registerGeofence" isEqualToString:call.method]) {
     [self registerGeofence:arguments];
     result(@(YES));
-  } else if ([@"GeofencingPlugin.removeGeofence" isEqualToString:call.method]) {
+  } else if ([@"NativeGeofencePlugin.removeGeofence" isEqualToString:call.method]) {
     result(@([self removeGeofence:arguments]));
-  } else if ([@"GeofencingPlugin.getRegisteredGeofenceIds" isEqualToString:call.method]) {
+  } else if ([@"NativeGeofencePlugin.getRegisteredGeofenceIds" isEqualToString:call.method]) {
       result([self getMonitoredRegionIds:arguments]);
-  } else if ([@"GeofencingPlugin.getRegisteredGeofenceRegions" isEqualToString:call.method]) {
+  } else if ([@"NativeGeofencePlugin.getRegisteredGeofenceRegions" isEqualToString:call.method]) {
       result([self getMonitoredRegions:arguments]);
   } else {
       result(FlutterMethodNotImplemented);
@@ -81,7 +81,7 @@ static BOOL backgroundIsolateRun = NO;
   // Check to see if we're being launched due to a location event.
   if (launchOptions[UIApplicationLaunchOptionsLocationKey] != nil) {
     // Restart the headless service.
-    [self startGeofencingService:[self getCallbackDispatcherHandle]];
+    [self startNativeGeofenceService:[self getCallbackDispatcherHandle]];
   }
 
   // Note: if we return NO, this vetos the launch of the application.
@@ -122,7 +122,7 @@ static BOOL backgroundIsolateRun = NO;
                      withError:(NSError *)error {
 }
 
-#pragma mark GeofencingPlugin Methods
+#pragma mark NativeGeofencePlugin Methods
 
 - (void)sendLocationEvent:(CLRegion *)region eventType:(int)event {
   NSAssert([region isKindOfClass:[CLCircularRegion class]], @"region must be CLCircularRegion");
@@ -150,17 +150,17 @@ static BOOL backgroundIsolateRun = NO;
   _headlessRunner = [[FlutterEngine alloc] initWithName:@"GeofencingIsolate" project:nil allowHeadlessExecution:YES];
   _registrar = registrar;
 
-  _mainChannel = [FlutterMethodChannel methodChannelWithName:@"plugins.cloudalert.eu/geofencing_plugin"
+  _mainChannel = [FlutterMethodChannel methodChannelWithName:@"native_geofence.chunkytofustudios.com/native_geofence_plugin"
                                              binaryMessenger:[registrar messenger]];
   [registrar addMethodCallDelegate:self channel:_mainChannel];
 
   _callbackChannel =
-      [FlutterMethodChannel methodChannelWithName:@"plugins.cloudalert.eu/geofencing_plugin_background"
+      [FlutterMethodChannel methodChannelWithName:@"native_geofence.chunkytofustudios.com/native_geofence_plugin_background"
                                   binaryMessenger:_headlessRunner];
   return self;
 }
 
-- (void)startGeofencingService:(int64_t)handle {
+- (void)startNativeGeofenceService:(int64_t)handle {
   [self setCallbackDispatcherHandle:handle];
   FlutterCallbackInformation *info = [FlutterCallbackCache lookupCallbackInformation:handle];
   NSAssert(info != nil, @"failed to find callback");

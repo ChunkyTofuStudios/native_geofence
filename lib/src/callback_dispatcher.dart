@@ -1,19 +1,15 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:geofencing/src/geofencing.dart';
-import 'package:geofencing/src/location.dart';
+import 'package:native_geofence/src/location.dart';
+import 'package:native_geofence/src/native_geofence.dart';
 
-@pragma('vm:entry-point') 
+@pragma('vm:entry-point')
 void callbackDispatcher() {
-  const MethodChannel _backgroundChannel =
-      MethodChannel('plugins.cloudalert.eu/geofencing_plugin_background');
+  const MethodChannel _backgroundChannel = MethodChannel(
+      'native_geofence.chunkytofustudios.com/native_geofence_plugin_background');
   WidgetsFlutterBinding.ensureInitialized();
 
   _backgroundChannel.setMethodCallHandler((MethodCall call) async {
@@ -32,5 +28,5 @@ void callbackDispatcher() {
     final GeofenceEvent event = intToGeofenceEvent(args[3]);
     callback?.call(triggeringGeofences, triggeringLocation, event);
   });
-  _backgroundChannel.invokeMethod('GeofencingService.initialized');
+  _backgroundChannel.invokeMethod('NativeGeofenceService.initialized');
 }

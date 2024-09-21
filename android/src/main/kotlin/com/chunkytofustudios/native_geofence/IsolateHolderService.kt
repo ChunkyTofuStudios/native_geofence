@@ -1,8 +1,4 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-package eu.cloudalert.plugins.geofencing
+package com.chunkytofustudios.native_geofence
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -38,7 +34,7 @@ class IsolateHolderService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val CHANNEL_ID = "geofencing_plugin_channel"
+        val CHANNEL_ID = "native_geofence_plugin_channel"
         val channel = NotificationChannel(CHANNEL_ID,
                 "Flutter Geofencing Plugin",
                 NotificationManager.IMPORTANCE_LOW)

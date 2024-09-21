@@ -1,25 +1,29 @@
-name: geofencing
-description: A geofencing plugin for Flutter applications.
-version: 0.1.0
-homepage: https://github.com/cloudalert/FlutterGeofencing
+name: native_geofence
+description: Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
+version: 0.2.0
+homepage: https://chunkytofustudios.com
+repository: https://github.com/ChunkyTofuStudios/native_geofence
 
 environment:
-  sdk: ">=3.0.3 <4.0.0"
-  flutter: "^2.0.0"
+  sdk: ">=3.4.3 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  plugin_platform_interface: ^2.1.8
+  logging: ^1.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^4.0.0
 
 flutter:
   plugin:
     platforms:
       android:
-        package: eu.cloudalert.plugins.geofencing
-        pluginClass: GeofencingPlugin
+        package: com.chunkytofustudios.native_geofence
+        pluginClass: NativeGeofencePlugin
       ios:
-        pluginClass: GeofencingPlugin
+        pluginClass: NativeGeofencePlugin

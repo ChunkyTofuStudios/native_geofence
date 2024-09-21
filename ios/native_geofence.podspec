@@ -3,20 +3,20 @@
 # Run `pod lib lint geofencing.podspec' to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'geofencing'
-  s.version          = '0.0.1'
-  s.summary          = 'CloudAlerts flutter Geofencing plugin.'
+  s.name             = 'native_geofence'
+  s.version          = '1.0.0'
+  s.summary          = 'iOS implementation for the Flutter native_geofence plugin.'
   s.description      = <<-DESC
-A new flutter plugin project.
+Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
                        DESC
-  s.homepage         = 'https://cloudalert.e'
+  s.homepage         = 'https://chunkytofustudios.com'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'CloudAlert B.V.' => 'supportl@cloudalert.eu' }
+  s.author           = { 'Chunky Tofu Studios' => 'supportl@chunkytofustudios.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.platform = :ios, '8.0'
+  s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice. Only x86_64 simulators are supported.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }

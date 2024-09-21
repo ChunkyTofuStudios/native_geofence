@@ -1,15 +1,12 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
-import 'package:geofencing/src/callback_dispatcher.dart';
-import 'package:geofencing/src/location.dart';
-import 'package:geofencing/src/platform_settings.dart';
+
+import 'package:native_geofence/src/callback_dispatcher.dart';
+import 'package:native_geofence/src/location.dart';
+import 'package:native_geofence/src/platform_settings.dart';
 
 const int _kEnterEvent = 1;
 const int _kExitEvent = 2;
@@ -34,7 +31,6 @@ int geofenceEventToInt(GeofenceEvent e) {
   }
 }
 
-// TODO(bkonyi): handle event masks
 // Internal.
 GeofenceEvent intToGeofenceEvent(int e) {
   switch (e) {
@@ -69,7 +65,7 @@ class GeofenceRegion {
   final List<GeofenceEvent> triggers;
 
   /// Android specific settings for a geofence.
-  final AndroidGeofencingSettings androidSettings;
+  final AndroidGeofenceSettings androidSettings;
 
   GeofenceRegion(
     this.id,
@@ -98,17 +94,17 @@ class GeofenceRegion {
 }
 
 class GeofencingManager {
-  static const MethodChannel _channel =
-      MethodChannel('plugins.cloudalert.eu/geofencing_plugin');
-  static const MethodChannel _background =
-      MethodChannel('plugins.cloudalert.eu/geofencing_plugin_background');
+  static const MethodChannel _channel = MethodChannel(
+      'native_geofence.chunkytofustudios.com/native_geofence_plugin');
+  static const MethodChannel _background = MethodChannel(
+      'native_geofence.chunkytofustudios.com/native_geofence_plugin_background');
 
   /// Initialize the plugin and request relevant permissions from the user.
   static Future<void> initialize() async {
     final CallbackHandle? callback =
         PluginUtilities.getCallbackHandle(callbackDispatcher);
     if (callback != null) {
-      await _channel.invokeMethod('GeofencingPlugin.initializeService',
+      await _channel.invokeMethod('NativeGeofencePlugin.initializeService',
           <dynamic>[callback.toRawHandle()]);
     }
   }
@@ -117,16 +113,16 @@ class GeofencingManager {
   ///
   /// Will throw an exception if called anywhere except for a geofencing
   /// callback.
-  static Future<void> promoteToForeground() async =>
-      await _background.invokeMethod('GeofencingService.promoteToForeground');
+  static Future<void> promoteToForeground() async => await _background
+      .invokeMethod('NativeGeofenceService.promoteToForeground');
 
   /// Demote the geofencing service from a foreground service to a background
   /// service.
   ///
   /// Will throw an exception if called anywhere except for a geofencing
   /// callback.
-  static Future<void> demoteToBackground() async =>
-      await _background.invokeMethod('GeofencingService.demoteToBackground');
+  static Future<void> demoteToBackground() async => await _background
+      .invokeMethod('NativeGeofenceService.demoteToBackground');
 
   /// Register for geofence events for a [GeofenceRegion].
   ///
@@ -150,19 +146,19 @@ class GeofencingManager {
       PluginUtilities.getCallbackHandle(callback)!.toRawHandle()
     ];
     args.addAll(region._toArgs());
-    await _channel.invokeMethod('GeofencingPlugin.registerGeofence', args);
+    await _channel.invokeMethod('NativeGeofencePlugin.registerGeofence', args);
   }
 
   /// reRegister geofences after reboot.
   /// This function can be called when the autostart feature is not working
   /// as it should. This way you can handle that case from the app.
   static Future<void> reRegisterAfterReboot() async =>
-      await _channel.invokeMethod('GeofencingPlugin.reRegisterAfterReboot');
+      await _channel.invokeMethod('NativeGeofencePlugin.reRegisterAfterReboot');
 
   /// get all geofence identifiers
   static Future<List<String>> getRegisteredGeofenceIds() async =>
       List<String>.from(await _channel
-          .invokeMethod('GeofencingPlugin.getRegisteredGeofenceIds'));
+          .invokeMethod('NativeGeofencePlugin.getRegisteredGeofenceIds'));
 
   /// get all geofence regions and their properties
   /// returns a [Map] with the following keys
@@ -173,16 +169,16 @@ class GeofencingManager {
   ///
   /// if there are no geofences registered it returns []
   static Future<List<Map<dynamic, dynamic>>>
-  getRegisteredGeofenceRegions() async =>
-      List<Map<dynamic, dynamic>>.from(await _channel
-          .invokeMethod('GeofencingPlugin.getRegisteredGeofenceRegions'));
+      getRegisteredGeofenceRegions() async =>
+          List<Map<dynamic, dynamic>>.from(await _channel.invokeMethod(
+              'NativeGeofencePlugin.getRegisteredGeofenceRegions'));
 
   /// Stop receiving geofence events for a given [GeofenceRegion].
   static Future<bool> removeGeofence(GeofenceRegion region) async =>
-      (region == null) ? false : await removeGeofenceById(region.id);
+      await removeGeofenceById(region.id);
 
   /// Stop receiving geofence events for an identifier associated with a
   /// geofence region.
   static Future<bool> removeGeofenceById(String id) async => await _channel
-      .invokeMethod('GeofencingPlugin.removeGeofence', <dynamic>[id]);
+      .invokeMethod('NativeGeofencePlugin.removeGeofence', <dynamic>[id]);
 }

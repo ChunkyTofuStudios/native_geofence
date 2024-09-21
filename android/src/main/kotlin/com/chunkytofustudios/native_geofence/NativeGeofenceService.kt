@@ -1,8 +1,4 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-package eu.cloudalert.plugins.geofencing
+package com.chunkytofustudios.native_geofence
 
 import android.content.Context
 import android.content.Intent
@@ -30,14 +26,14 @@ import io.flutter.embedding.engine.dart.DartExecutor.DartCallback
 
 import com.google.android.gms.location.GeofencingEvent
 
-class GeofencingService : MethodCallHandler, JobIntentService() {
+class NativeGeofenceService : MethodCallHandler, JobIntentService() {
     private val queue = ArrayDeque<List<Any>>()
     private lateinit var mBackgroundChannel: MethodChannel
     private lateinit var mContext: Context
 
     companion object {
         @JvmStatic
-        private val TAG = "GeofencingService"
+        private val TAG = "NativeGeofenceService"
         @JvmStatic
         private val JOB_ID = UUID.randomUUID().mostSignificantBits.toInt()
         @JvmStatic
@@ -50,7 +46,7 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
 
         @JvmStatic
         fun enqueueWork(context: Context, work: Intent) {
-            enqueueWork(context, GeofencingService::class.java, JOB_ID, work)
+            enqueueWork(context, NativeGeofenceService::class.java, JOB_ID, work)
         }
 
         @JvmStatic
@@ -59,16 +55,16 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
         }
     }
 
-    private fun startGeofencingService(context: Context) {
+    private fun startNativeGeofenceService(context: Context) {
         synchronized(sServiceStarted) {
             mContext = context
             if (sBackgroundFlutterEngine == null) {
                 sBackgroundFlutterEngine = FlutterEngine(context)
 
                 val callbackHandle = context.getSharedPreferences(
-                        GeofencingPlugin.SHARED_PREFERENCES_KEY,
+                        NativeGeofencePlugin.SHARED_PREFERENCES_KEY,
                         Context.MODE_PRIVATE)
-                        .getLong(GeofencingPlugin.CALLBACK_DISPATCHER_HANDLE_KEY, 0)
+                        .getLong(NativeGeofencePlugin.CALLBACK_DISPATCHER_HANDLE_KEY, 0)
                 if (callbackHandle == 0L) {
                     Log.e(TAG, "Fatal: no callback registered")
                     return
@@ -79,7 +75,7 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
                     Log.e(TAG, "Fatal: failed to find callback")
                     return
                 }
-                Log.i(TAG, "Starting GeofencingService...")
+                Log.i(TAG, "Starting NativeGeofenceService...")
 
                 val args = DartCallback(
                     context.getAssets(),
@@ -91,13 +87,13 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
             }
         }
         mBackgroundChannel = MethodChannel(sBackgroundFlutterEngine!!.getDartExecutor().getBinaryMessenger(),
-                "plugins.cloudalert.eu/geofencing_plugin_background")
+                "native_geofence.chunkytofustudios.com/native_geofence_plugin_background")
         mBackgroundChannel.setMethodCallHandler(this)
     }
 
    override fun onMethodCall(call: MethodCall, result: Result) {
        when(call.method) {
-            "GeofencingService.initialized" -> {
+            "NativeGeofenceService.initialized" -> {
                 synchronized(sServiceStarted) {
                     while (!queue.isEmpty()) {
                         mBackgroundChannel.invokeMethod("", queue.remove())
@@ -105,10 +101,10 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
                     sServiceStarted.set(true)
                 }
             }
-            "GeofencingService.promoteToForeground" -> {
+            "NativeGeofenceService.promoteToForeground" -> {
                 mContext.startForegroundService(Intent(mContext, IsolateHolderService::class.java))
             }
-            "GeofencingService.demoteToBackground" -> {
+            "NativeGeofenceService.demoteToBackground" -> {
                 val intent = Intent(mContext, IsolateHolderService::class.java)
                 intent.setAction(IsolateHolderService.ACTION_SHUTDOWN)
                 mContext.startForegroundService(intent)
@@ -120,12 +116,16 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
 
     override fun onCreate() {
         super.onCreate()
-        startGeofencingService(this)
+        startNativeGeofenceService(this)
     }
 
     override fun onHandleWork(intent: Intent) {
-        val callbackHandle = intent.getLongExtra(GeofencingPlugin.CALLBACK_HANDLE_KEY, 0)
+        val callbackHandle = intent.getLongExtra(NativeGeofencePlugin.CALLBACK_HANDLE_KEY, 0)
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
+        if (geofencingEvent == null) {
+            Log.e(TAG, "GeofencingEvent was null.")
+            return
+        }
         if (geofencingEvent.hasError()) {
             Log.e(TAG, "Geofencing error: ${geofencingEvent.errorCode}")
             return
@@ -136,11 +136,20 @@ class GeofencingService : MethodCallHandler, JobIntentService() {
 
         // Get the geofences that were triggered. A single event can trigger
         // multiple geofences.
-        val triggeringGeofences = geofencingEvent.triggeringGeofences.map {
+        val triggeringGeofences = geofencingEvent.triggeringGeofences?.map {
             it.requestId
+        }
+        if (triggeringGeofences == null) {
+            Log.e(TAG, "No triggering geofences found.")
+            return
         }
 
         val location = geofencingEvent.triggeringLocation
+        if (location == null) {
+            Log.e(TAG, "No triggering location found.")
+            return
+        }
+
         val locationList = listOf(location.latitude,
                 location.longitude)
         val geofenceUpdateList = listOf(callbackHandle,

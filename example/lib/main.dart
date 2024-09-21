@@ -8,8 +8,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'package:geofencing/geofencing.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'package:native_geofence/native_geofence.dart';
 
 void main() => runApp(MyApp());
 
@@ -29,7 +30,7 @@ class _MyAppState extends State<MyApp> {
     GeofenceEvent.enter,
     GeofenceEvent.exit
   ];
-  final AndroidGeofencingSettings androidSettings = AndroidGeofencingSettings(
+  final AndroidGeofenceSettings androidSettings = AndroidGeofenceSettings(
     initialTrigger: <GeofenceEvent>[
       GeofenceEvent.enter,
       GeofenceEvent.exit,
@@ -43,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     IsolateNameServer.registerPortWithName(
       port.sendPort,
-      'geofencing_send_port',
+      'native_geofence_send_port',
     );
     port.listen((dynamic data) {
       print('Event: $data');
@@ -88,7 +89,7 @@ class _MyAppState extends State<MyApp> {
   static void callback(List<String> ids, Location l, GeofenceEvent e) async {
     print('Fences: $ids Location $l Event: $e');
     final SendPort? send =
-        IsolateNameServer.lookupPortByName('geofencing_send_port');
+        IsolateNameServer.lookupPortByName('native_geofence_send_port');
     send?.send(e.toString());
   }
 

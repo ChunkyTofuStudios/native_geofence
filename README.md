@@ -14,16 +14,16 @@ platforms which are to be targeted.
 ### Android
 
 Add the following lines to your `AndroidManifest.xml` to register the background service for
-geofencing:
+native_geofence:
 
 ```xml
-<receiver android:name="eu.cloudalert.plugins.geofencing.GeofencingBroadcastReceiver"
+<receiver android:name="com.chunkytofustudios.native_geofence.NativeGeofenceBroadcastReceiver"
     android:enabled="true" android:exported="true"/>
 
-<service android:name="eu.cloudalert.plugins.geofencing.GeofencingService"
+<service android:name="com.chunkytofustudios.native_geofence.NativeGeofenceService"
     android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
 
-<receiver android:name="eu.cloudalert.plugins.geofencing.GeofencingRebootBroadcastReceiver"
+<receiver android:name="com.chunkytofustudios.native_geofence.NativeGeofenceRebootBroadcastReceiver"
     android:enabled="true" android:exported="true" android:label="BootReceiver">
     <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED"/>
@@ -31,7 +31,7 @@ geofencing:
 </receiver>
 ```
 
-Also request the correct permissions for geofencing:
+Also request the correct permissions for native_geofence:
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION_LOCATION"/>
@@ -47,7 +47,7 @@ For `Application.kt`, use the following:
 class Application : FlutterApplication(), PluginRegistrantCallback {
   override fun onCreate() {
     super.onCreate();
-    GeofencingService.setPluginRegistrant(this);
+    NativeGeofenceService.setPluginRegistrant(this);
   }
 
   override fun registerWith(registry: PluginRegistry) {
@@ -62,7 +62,7 @@ public class Application extends FlutterApplication implements PluginRegistrantC
   @Override
   public void onCreate() {
     super.onCreate();
-    GeofencingService.setPluginRegistrant(this);
+    NativeGeofenceService.setPluginRegistrant(this);
   }
 
   @Override
@@ -92,7 +92,7 @@ Add the following lines to your Info.plist:
     ...
 ```
 
-And request the correct permissions for geofencing:
+And request the correct permissions for native_geofence:
 
 ```xml
 <dict>
@@ -115,13 +115,13 @@ And request the correct permissions for geofencing:
 Add this line to `Runner-Briding-Header.h`
 
 ```h
-#import <geofencing/GeofencingPlugin.h>
+#import <native_geofence/NativeGeofencePlugin.h>
 ```
 
 At the end add this line to `AppDelegate.swift`
 
 ```swift
-GeofencingPlugin.setPluginRegistrantCallback { (registry) in GeneratedPluginRegistrant.register(with: registry) }
+NativeGeofencePlugin.setPluginRegistrantCallback { (registry) in GeneratedPluginRegistrant.register(with: registry) }
 ```
 
 ### Notes

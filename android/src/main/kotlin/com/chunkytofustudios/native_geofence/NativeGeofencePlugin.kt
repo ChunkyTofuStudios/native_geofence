@@ -1,8 +1,4 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-package eu.cloudalert.plugins.geofencing
+package com.chunkytofustudios.native_geofence
 
 import android.Manifest
 import android.app.Activity
@@ -26,16 +22,16 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import org.json.JSONArray
 
-class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
+class NativeGeofencePlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
   private var mContext : Context? = null
   private var mActivity : Activity? = null
   private var mGeofencingClient : GeofencingClient? = null
 
   companion object {
     @JvmStatic
-    private val TAG = "GeofencingPlugin"
+    private val TAG = "NativeGeofencePlugin"
     @JvmStatic
-    val SHARED_PREFERENCES_KEY = "geofencing_plugin_cache"
+    val SHARED_PREFERENCES_KEY = "native_geofence_plugin_cache"
     @JvmStatic
     val CALLBACK_HANDLE_KEY = "callback_handle"
     @JvmStatic
@@ -144,7 +140,7 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
 
     @JvmStatic
     private fun initializeService(context: Context, args: ArrayList<*>?) {
-      Log.d(TAG, "Initializing GeofencingService")
+      Log.d(TAG, "Initializing NativeGeofenceService")
       val callbackHandle = args!![0] as Long
       context.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
               .edit()
@@ -162,7 +158,7 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
 
     @JvmStatic
     private fun getGeofencePendingIndent(context: Context, callbackHandle: Long): PendingIntent {
-      val intent = Intent(context, GeofencingBroadcastReceiver::class.java)
+      val intent = Intent(context, NativeGeofenceBroadcastReceiver::class.java)
               .putExtra(CALLBACK_HANDLE_KEY, callbackHandle)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
@@ -254,7 +250,7 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     mContext = binding.getApplicationContext()
     mGeofencingClient = LocationServices.getGeofencingClient(mContext!!)
-    val channel = MethodChannel(binding.getBinaryMessenger(), "plugins.cloudalert.eu/geofencing_plugin")
+    val channel = MethodChannel(binding.getBinaryMessenger(), "native_geofence.chunkytofustudios.com/native_geofence_plugin")
     channel.setMethodCallHandler(this)
   }
 
@@ -282,25 +278,25 @@ class GeofencingPlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
   override fun onMethodCall(call: MethodCall, result: Result) {
     val args = call.arguments<ArrayList<*>>()
     when(call.method) {
-      "GeofencingPlugin.initializeService" -> {
+      "NativeGeofencePlugin.initializeService" -> {
         initializeService(mContext!!, args)
         result.success(true)
       }
-      "GeofencingPlugin.registerGeofence" -> registerGeofence(mContext!!,
+      "NativeGeofencePlugin.registerGeofence" -> registerGeofence(mContext!!,
               mGeofencingClient!!,
               args,
               result,
               true)
-      "GeofencingPlugin.removeGeofence" -> removeGeofence(mContext!!,
+      "NativeGeofencePlugin.removeGeofence" -> removeGeofence(mContext!!,
               mGeofencingClient!!,
               args,
               result)
-      "GeofencingPlugin.reRegisterAfterReboot" -> {
+      "NativeGeofencePlugin.reRegisterAfterReboot" -> {
         reRegisterAfterReboot(mContext!!)
         result.success(true)
       }
-      "GeofencingPlugin.getRegisteredGeofenceIds" -> getRegisteredGeofenceIds(mContext!!, result)
-      "GeofencingPlugin.getRegisteredGeofenceRegions" -> getRegisteredGeofences(mContext!!, result)
+      "NativeGeofencePlugin.getRegisteredGeofenceIds" -> getRegisteredGeofenceIds(mContext!!, result)
+      "NativeGeofencePlugin.getRegisteredGeofenceRegions" -> getRegisteredGeofences(mContext!!, result)
       else -> result.notImplemented()
     }
   }
