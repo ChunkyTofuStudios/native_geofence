@@ -71,7 +71,7 @@ class NativeGeofencePlugin : ActivityAware, FlutterPlugin, MethodCallHandler {
             val radius = (args[4] as Number).toFloat()
             val fenceTriggers = args[5] as Int
             val initialTriggers = args[6] as Int
-            val expirationDuration = (args[7] as Int?)?.toLong()
+            val expirationDuration = (args[7].toIntOrNull())?.toLong()
             val loiteringDelay = args[8] as Int
             val notificationResponsiveness = args[9] as Int?
             val geofenceBuilder = Geofence.Builder()
