@@ -1,5 +1,6 @@
 package com.chunkytofustudios.native_geofence
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -8,17 +9,14 @@ import android.content.Intent
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
-import android.util.Log
 import io.flutter.embedding.engine.FlutterEngine
+import kotlin.time.Duration.Companion.minutes
 
 class IsolateHolderService : Service() {
     companion object {
         @JvmStatic
-        val ACTION_SHUTDOWN = "SHUTDOWN"
-        @JvmStatic
         private val WAKELOCK_TAG = "IsolateHolderService::WAKE_LOCK"
-        @JvmStatic
-        private val TAG = "IsolateHolderService"
+
         @JvmStatic
         private var sBackgroundFlutterEngine: FlutterEngine? = null
 
@@ -28,47 +26,54 @@ class IsolateHolderService : Service() {
         }
     }
 
-    override fun onBind(p0: Intent) : IBinder? {
-        return null;
+    override fun onBind(p0: Intent): IBinder? {
+        return null
     }
+
 
     override fun onCreate() {
         super.onCreate()
-        val CHANNEL_ID = "native_geofence_plugin_channel"
-        val channel = NotificationChannel(CHANNEL_ID,
-                "Flutter Geofencing Plugin",
-                NotificationManager.IMPORTANCE_LOW)
-        val imageId = getResources().getIdentifier("ic_launcher", "mipmap", getPackageName())
+        val channelId = "native_geofence_plugin_channel"
+        val channel = NotificationChannel(
+            channelId,
+            "Flutter Native Geofence Plugin",
+            NotificationManager.IMPORTANCE_LOW
+        )
 
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Almost home!")
-                .setContentText("Within 1KM of home. Fine location tracking enabled.")
-                .setSmallIcon(imageId)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .build()
+        @SuppressLint("DiscouragedApi") // Can't use R syntax in Flutter plugin.
+        val imageId = resources.getIdentifier("ic_launcher", "mipmap", packageName)
+
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
+            channel
+        )
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Almost home!")
+            .setContentText("Within 1KM of home. Fine location tracking enabled.")
+            .setSmallIcon(imageId)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
 
         (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).apply {
                 setReferenceCounted(false)
-                acquire()
+                acquire(5.minutes.inWholeMilliseconds)
             }
         }
         startForeground(1, notification)
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int) : Int {
-        if (intent.getAction() == ACTION_SHUTDOWN) {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        if (intent.action == Constants.ACTION_SHUTDOWN) {
             (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
                 newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).apply {
-                    if (isHeld()) {
+                    if (isHeld) {
                         release()
                     }
                 }
             }
-            stopForeground(true)
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
-        return START_STICKY;
+        return START_STICKY
     }
 }

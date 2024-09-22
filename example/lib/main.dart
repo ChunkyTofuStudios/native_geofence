@@ -35,8 +35,8 @@ class _MyAppState extends State<MyApp> {
       GeofenceEvent.enter,
       GeofenceEvent.exit,
     ],
-    loiteringDelay: 0,
-    notificationResponsiveness: 0,
+    loiteringDelay: Duration.zero,
+    notificationResponsiveness: Duration.zero,
   );
 
   @override
@@ -59,18 +59,18 @@ class _MyAppState extends State<MyApp> {
     final firstPermission = await Permission.locationWhenInUse.request();
     final secondPermission = await Permission.locationAlways.request();
     if (firstPermission.isGranted && secondPermission.isGranted) {
-      await GeofencingManager.registerGeofence(
-        GeofenceRegion(
-          'mtv',
-          latitude,
-          longitude,
-          radius,
-          triggers,
-          androidSettings,
+      await NativeGeofenceManager.registerGeofence(
+        Geofence(
+          id: 'mtv',
+          location: Location(latitude, longitude),
+          radiusMeters: radius,
+          triggers: triggers,
+          androidSettings: androidSettings,
         ),
         callback,
       );
-      final registeredIds = await GeofencingManager.getRegisteredGeofenceIds();
+      final registeredIds =
+          await NativeGeofenceManager.getRegisteredGeofenceIds();
       setState(() {
         registeredGeofences = registeredIds;
       });
@@ -78,8 +78,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   void unregisteGeofence() async {
-    await GeofencingManager.removeGeofenceById('mtv');
-    final registeredIds = await GeofencingManager.getRegisteredGeofenceIds();
+    await NativeGeofenceManager.removeGeofenceById('mtv');
+    final registeredIds =
+        await NativeGeofenceManager.getRegisteredGeofenceIds();
     setState(() {
       registeredGeofences = registeredIds;
     });
@@ -95,7 +96,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     print('Initializing...');
-    await GeofencingManager.initialize();
+    await NativeGeofenceManager.initialize();
     print('Initialization done');
   }
 

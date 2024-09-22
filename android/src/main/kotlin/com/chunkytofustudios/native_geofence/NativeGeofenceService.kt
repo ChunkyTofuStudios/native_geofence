@@ -2,8 +2,6 @@ package com.chunkytofustudios.native_geofence
 
 import android.content.Context
 import android.content.Intent
-import android.os.IBinder
-import android.os.PowerManager
 import android.os.Handler
 import android.util.Log
 import androidx.core.app.JobIntentService
@@ -11,20 +9,16 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback
 import io.flutter.view.FlutterCallbackInformation
-import io.flutter.view.FlutterMain
-import io.flutter.view.FlutterNativeView
-import io.flutter.view.FlutterRunArguments
 import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.UUID
 
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.embedding.engine.dart.DartExecutor.DartCallback
 
 import com.google.android.gms.location.GeofencingEvent
+import io.flutter.embedding.engine.loader.FlutterLoader
 
 class NativeGeofenceService : MethodCallHandler, JobIntentService() {
     private val queue = ArrayDeque<List<Any>>()
@@ -34,24 +28,19 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
     companion object {
         @JvmStatic
         private val TAG = "NativeGeofenceService"
+
         @JvmStatic
         private val JOB_ID = UUID.randomUUID().mostSignificantBits.toInt()
+
         @JvmStatic
         private var sBackgroundFlutterEngine: FlutterEngine? = null
+
         @JvmStatic
         private val sServiceStarted = AtomicBoolean(false)
 
         @JvmStatic
-        private lateinit var sPluginRegistrantCallback: PluginRegistrantCallback
-
-        @JvmStatic
         fun enqueueWork(context: Context, work: Intent) {
             enqueueWork(context, NativeGeofenceService::class.java, JOB_ID, work)
-        }
-
-        @JvmStatic
-        fun setPluginRegistrant(callback: PluginRegistrantCallback) {
-            sPluginRegistrantCallback = callback
         }
     }
 
@@ -62,15 +51,17 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
                 sBackgroundFlutterEngine = FlutterEngine(context)
 
                 val callbackHandle = context.getSharedPreferences(
-                        NativeGeofencePlugin.SHARED_PREFERENCES_KEY,
-                        Context.MODE_PRIVATE)
-                        .getLong(NativeGeofencePlugin.CALLBACK_DISPATCHER_HANDLE_KEY, 0)
+                    Constants.SHARED_PREFERENCES_KEY,
+                    Context.MODE_PRIVATE
+                )
+                    .getLong(Constants.CALLBACK_DISPATCHER_HANDLE_KEY, 0)
                 if (callbackHandle == 0L) {
                     Log.e(TAG, "Fatal: no callback registered")
                     return
                 }
 
-                val callbackInfo = FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
+                val callbackInfo =
+                    FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
                 if (callbackInfo == null) {
                     Log.e(TAG, "Fatal: failed to find callback")
                     return
@@ -78,21 +69,23 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
                 Log.i(TAG, "Starting NativeGeofenceService...")
 
                 val args = DartCallback(
-                    context.getAssets(),
-                    FlutterMain.findAppBundlePath(context)!!,
+                    context.assets,
+                    FlutterLoader().findAppBundlePath(),
                     callbackInfo
                 )
-                sBackgroundFlutterEngine!!.getDartExecutor().executeDartCallback(args)
+                sBackgroundFlutterEngine!!.dartExecutor.executeDartCallback(args)
                 IsolateHolderService.setBackgroundFlutterEngine(sBackgroundFlutterEngine)
             }
         }
-        mBackgroundChannel = MethodChannel(sBackgroundFlutterEngine!!.getDartExecutor().getBinaryMessenger(),
-                "native_geofence.chunkytofustudios.com/native_geofence_plugin_background")
+        mBackgroundChannel = MethodChannel(
+            sBackgroundFlutterEngine!!.dartExecutor.binaryMessenger,
+            "native_geofence.chunkytofustudios.com/native_geofence_plugin_background"
+        )
         mBackgroundChannel.setMethodCallHandler(this)
     }
 
-   override fun onMethodCall(call: MethodCall, result: Result) {
-       when(call.method) {
+    override fun onMethodCall(call: MethodCall, result: Result) {
+        when (call.method) {
             "NativeGeofenceService.initialized" -> {
                 synchronized(sServiceStarted) {
                     while (!queue.isEmpty()) {
@@ -101,14 +94,17 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
                     sServiceStarted.set(true)
                 }
             }
+
             "NativeGeofenceService.promoteToForeground" -> {
                 mContext.startForegroundService(Intent(mContext, IsolateHolderService::class.java))
             }
+
             "NativeGeofenceService.demoteToBackground" -> {
                 val intent = Intent(mContext, IsolateHolderService::class.java)
-                intent.setAction(IsolateHolderService.ACTION_SHUTDOWN)
+                intent.setAction(Constants.ACTION_SHUTDOWN)
                 mContext.startForegroundService(intent)
             }
+
             else -> result.notImplemented()
         }
         result.success(null)
@@ -120,7 +116,7 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
     }
 
     override fun onHandleWork(intent: Intent) {
-        val callbackHandle = intent.getLongExtra(NativeGeofencePlugin.CALLBACK_HANDLE_KEY, 0)
+        val callbackHandle = intent.getLongExtra(Constants.CALLBACK_HANDLE_KEY, 0)
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent == null) {
             Log.e(TAG, "GeofencingEvent was null.")
@@ -150,12 +146,16 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
             return
         }
 
-        val locationList = listOf(location.latitude,
-                location.longitude)
-        val geofenceUpdateList = listOf(callbackHandle,
-                triggeringGeofences,
-                locationList,
-                geofenceTransition)
+        val locationList = listOf(
+            location.latitude,
+            location.longitude
+        )
+        val geofenceUpdateList = listOf(
+            callbackHandle,
+            triggeringGeofences,
+            locationList,
+            geofenceTransition
+        )
 
         synchronized(sServiceStarted) {
             if (!sServiceStarted.get()) {
@@ -163,7 +163,12 @@ class NativeGeofenceService : MethodCallHandler, JobIntentService() {
                 queue.add(geofenceUpdateList)
             } else {
                 // Callback method name is intentionally left blank.
-                Handler(mContext.mainLooper).post { mBackgroundChannel.invokeMethod("", geofenceUpdateList) }
+                Handler(mContext.mainLooper).post {
+                    mBackgroundChannel.invokeMethod(
+                        "",
+                        geofenceUpdateList
+                    )
+                }
             }
         }
     }

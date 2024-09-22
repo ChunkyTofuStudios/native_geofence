@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:native_geofence/src/location.dart';
-import 'package:native_geofence/src/native_geofence.dart';
+import 'package:native_geofence/src/model/converters/geofence_event_mapper.dart';
+import 'package:native_geofence/src/model/converters/location_mapper.dart';
+import 'package:native_geofence/src/model/geofence_event.dart';
+import 'package:native_geofence/src/model/location.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -24,8 +26,8 @@ void callbackDispatcher() {
     // around casting in another complicated manner.
     args[2]
         .forEach((dynamic e) => locationList.add(double.parse(e.toString())));
-    final Location triggeringLocation = locationFromList(locationList);
-    final GeofenceEvent event = intToGeofenceEvent(args[3]);
+    final Location triggeringLocation = LocationMapper.fromList(locationList);
+    final GeofenceEvent event = GeofenceEventMapper.fromId(args[3]);
     callback?.call(triggeringGeofences, triggeringLocation, event);
   });
   _backgroundChannel.invokeMethod('NativeGeofenceService.initialized');
