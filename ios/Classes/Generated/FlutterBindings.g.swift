@@ -82,7 +82,7 @@ enum GeofenceEvent: Int {
 /// Errors that can occur when interacting with the native geofence API.
 enum NativeGeofenceErrorCode: Int {
   case unknown = 0
-  case internal = 1
+  case pluginInternal = 1
   case invalidArguments = 2
   case channelError = 3
   case missingLocationPermission = 4

@@ -68,7 +68,7 @@ enum class GeofenceEvent(val raw: Int) {
 /** Errors that can occur when interacting with the native geofence API. */
 enum class NativeGeofenceErrorCode(val raw: Int) {
   UNKNOWN(0),
-  INTERNAL(1),
+  PLUGIN_INTERNAL(1),
   INVALID_ARGUMENTS(2),
   CHANNEL_ERROR(3),
   MISSING_LOCATION_PERMISSION(4),

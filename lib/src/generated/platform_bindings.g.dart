@@ -39,7 +39,7 @@ enum GeofenceEvent {
 /// Errors that can occur when interacting with the native geofence API.
 enum NativeGeofenceErrorCode {
   unknown,
-  internal,
+  pluginInternal,
   invalidArguments,
   channelError,
   missingLocationPermission,

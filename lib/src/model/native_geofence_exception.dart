@@ -17,7 +17,7 @@ class NativeGeofenceException implements Exception {
   NativeGeofenceException.internal({
     required String message,
     this.details,
-  })  : code = NativeGeofenceErrorCode.internal,
+  })  : code = NativeGeofenceErrorCode.pluginInternal,
         message = message,
         stacktrace = StackTrace.current.toString();
 
