@@ -1,9 +1,11 @@
-package com.chunkytofustudios.native_geofence
+package com.chunkytofustudios.native_geofence.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.chunkytofustudios.native_geofence.Constants
+import com.chunkytofustudios.native_geofence.api.NativeGeofenceApiImpl
 
 class NativeGeofenceRebootBroadcastReceiver : BroadcastReceiver() {
     companion object {
@@ -11,13 +13,8 @@ class NativeGeofenceRebootBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.i(TAG, "Setting boot completed marker!")
-        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(Constants.BOOT_COMPLETED_RECEIVED_MARKER, true)
-            .apply()
-
+        Log.d(TAG, "Boot completed broadcast received.")
         Log.i(TAG, "Re-registering geofences!")
-        NativeGeofencePlugin.reRegisterAfterReboot(context)
+        NativeGeofenceApiImpl(context).reCreateAfterReboot()
     }
 }

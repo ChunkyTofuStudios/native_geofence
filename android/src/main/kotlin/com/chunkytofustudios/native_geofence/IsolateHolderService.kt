@@ -9,21 +9,12 @@ import android.content.Intent
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
-import io.flutter.embedding.engine.FlutterEngine
 import kotlin.time.Duration.Companion.minutes
 
 class IsolateHolderService : Service() {
     companion object {
         @JvmStatic
         private val WAKELOCK_TAG = "IsolateHolderService::WAKE_LOCK"
-
-        @JvmStatic
-        private var sBackgroundFlutterEngine: FlutterEngine? = null
-
-        @JvmStatic
-        fun setBackgroundFlutterEngine(engine: FlutterEngine?) {
-            sBackgroundFlutterEngine = engine
-        }
     }
 
     override fun onBind(p0: Intent): IBinder? {

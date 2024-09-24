@@ -29,7 +29,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
         GeofenceEvent.exit,
       ],
       androidSettings: AndroidGeofenceSettings(
-        initialTrigger: <GeofenceEvent>[GeofenceEvent.enter],
+        initialTriggers: <GeofenceEvent>[GeofenceEvent.enter],
       ),
     );
     _updateRegisteredGeofences();
@@ -87,7 +87,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
                     );
                     return;
                   }
-                  await NativeGeofenceManager.registerGeofence(
+                  await NativeGeofenceManager.createGeofence(
                       data, geofenceTriggered);
                   await _updateRegisteredGeofences();
                 },
@@ -120,7 +120,10 @@ class _CreateGeofenceState extends State<CreateGeofence> {
 Future<bool> _checkPermissions() async {
   final locationPerm = await Permission.locationWhenInUse.request();
   final backgroundLocationPerm = await Permission.locationAlways.request();
-  return locationPerm.isGranted && backgroundLocationPerm.isGranted;
+  final notificationPerm = await Permission.notification.request();
+  return locationPerm.isGranted &&
+      backgroundLocationPerm.isGranted &&
+      notificationPerm.isGranted;
 }
 
 extension ModifyGeofence on Geofence {
@@ -161,7 +164,7 @@ extension ModifyAndroidGeofenceSettings on AndroidGeofenceSettings {
     Duration Function()? notificationResponsiveness,
   }) {
     return AndroidGeofenceSettings(
-      initialTrigger: initialTrigger?.call() ?? this.initialTrigger,
+      initialTriggers: initialTrigger?.call() ?? this.initialTriggers,
       expiration: expiration?.call() ?? this.expiration,
       loiteringDelay: loiteringDelay?.call() ?? this.loiteringDelay,
       notificationResponsiveness:

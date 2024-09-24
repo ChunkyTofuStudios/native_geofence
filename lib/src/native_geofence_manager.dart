@@ -2,28 +2,28 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/services.dart';
-
-import 'package:native_geofence/src/callback.dart';
 import 'package:native_geofence/src/callback_dispatcher.dart';
-import 'package:native_geofence/src/model/converters/geofence_mapper.dart';
-import 'package:native_geofence/src/model/geofence.dart';
-import 'package:native_geofence/src/model/geofence_event.dart';
+import 'package:native_geofence/src/generated/platform_bindings.g.dart';
+import 'package:native_geofence/src/model/model.dart';
+import 'package:native_geofence/src/model/model_mapper.dart';
+import 'package:native_geofence/src/model/native_geofence_exception.dart';
+import 'package:native_geofence/src/typedefs.dart';
 
 class NativeGeofenceManager {
-  static const MethodChannel _channel = MethodChannel(
-      'native_geofence.chunkytofustudios.com/native_geofence_plugin');
-  static const MethodChannel _background = MethodChannel(
-      'native_geofence.chunkytofustudios.com/native_geofence_plugin_background');
+  static final _api = NativeGeofenceApi();
+  static final _backgroundApi = NativeGeofenceBackgroundApi();
 
   /// Initialize the plugin.
   static Future<void> initialize() async {
     final CallbackHandle? callback =
         PluginUtilities.getCallbackHandle(callbackDispatcher);
-    if (callback != null) {
-      await _channel.invokeMethod('NativeGeofencePlugin.initializeService',
-          <dynamic>[callback.toRawHandle()]);
+    if (callback == null) {
+      throw NativeGeofenceException.internal(
+          message: 'Callback dispatcher is invalid.');
     }
+    return _api
+        .initialize(callbackDispatcherHandle: callback.toRawHandle())
+        .catchError(NativeGeofenceExceptionMapper.catchError<void>);
   }
 
   /// Register for geofence events for a [Geofence].
@@ -31,75 +31,80 @@ class NativeGeofenceManager {
   /// [region] is the geofence region to register with the system.
   /// [callback] is the method to be called when a geofence event associated
   /// with [region] occurs.
-  static Future<void> registerGeofence(
-      Geofence region, GeofenceCallback callback) async {
-    if (region.triggers.isEmpty) {
-      throw ArgumentError('Geofence triggers cannot be empty.');
+  static Future<void> createGeofence(
+      Geofence geofence, GeofenceCallback callback) async {
+    if (geofence.triggers.isEmpty) {
+      throw NativeGeofenceException.invalidArgument(
+          message: 'Geofence triggers cannot be empty.');
     }
     if (Platform.isIOS &&
-        region.triggers.length == 1 &&
-        region.triggers[0] == GeofenceEvent.dwell) {
-      throw UnsupportedError("iOS does not support 'GeofenceEvent.dwell'.");
+        geofence.triggers.length == 1 &&
+        geofence.triggers[0] == GeofenceEvent.dwell) {
+      throw NativeGeofenceException.invalidArgument(
+          message: 'iOS does not support "GeofenceEvent.dwell".');
     }
     final callbackHandle = PluginUtilities.getCallbackHandle(callback);
     if (callbackHandle == null) {
-      throw ArgumentError('Callback is isvalid.');
+      throw NativeGeofenceException.invalidArgument(
+          message: 'Callback is invalid.');
     }
-    final List<dynamic> args = <dynamic>[callbackHandle.toRawHandle()];
-    args.addAll(region.toArgs());
-    await _channel.invokeMethod('NativeGeofencePlugin.registerGeofence', args);
+    return _api
+        .createGeofence(geofence: geofence.toWire(callbackHandle.toRawHandle()))
+        .catchError(NativeGeofenceExceptionMapper.catchError<void>);
   }
 
   /// Re-register geofences after reboot.
   ///
   /// This function can be called when the autostart feature is not working as
   /// it should. This way you can handle that case from the app.
-  static Future<void> reRegisterAfterReboot() async =>
-      await _channel.invokeMethod('NativeGeofencePlugin.reRegisterAfterReboot');
+  static Future<void> reCreateAfterReboot() async => _api
+      .reCreateAfterReboot()
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
-  /// Get all geofence identifiers.
-  static Future<List<String>> getRegisteredGeofenceIds() async =>
-      List<String>.from(await _channel
-          .invokeMethod('NativeGeofencePlugin.getRegisteredGeofenceIds'));
-
-  /// Get all geofence regions and their properties.
-  /// Returns a [Map] with the following keys.
-  /// [id] the identifier
-  /// [lat] latitude
-  /// [long] longitude
-  /// [radius] radius
+  /// Get all registered [Geofence] IDs.
   ///
-  /// If there are no geofences registered it returns [].
-  static Future<List<Map<dynamic, dynamic>>>
-      getRegisteredGeofenceRegions() async =>
-          List<Map<dynamic, dynamic>>.from(await _channel.invokeMethod(
-              'NativeGeofencePlugin.getRegisteredGeofenceRegions'));
+  /// If there are no geofences registered it returns an empty list.
+  static Future<List<String>> getRegisteredGeofenceIds() async => _api
+      .getGeofenceIds()
+      .catchError(NativeGeofenceExceptionMapper.catchError<List<String>>);
+
+  /// Get all [Geofence] regions and their properties.
+  ///
+  /// If there are no geofences registered it returns an empty list.
+  static Future<List<Geofence>> getRegisteredGeofences() async => _api
+      .getGeofences()
+      .then((value) => value.map((e) => e.fromWire()).toList())
+      .catchError(NativeGeofenceExceptionMapper.catchError<List<Geofence>>);
 
   /// Promote the geofencing service to a foreground service.
   ///
   /// Will throw an exception if called anywhere except for a geofencing
   /// callback.
-  static Future<void> promoteToForeground() async => await _background
-      .invokeMethod('NativeGeofenceService.promoteToForeground');
+  static Future<void> promoteToForeground() async => _backgroundApi
+      .promoteToForeground()
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
   /// Demote the geofencing service from a foreground service to a background
   /// service.
   ///
   /// Will throw an exception if called anywhere except for a geofencing
   /// callback.
-  static Future<void> demoteToBackground() async => await _background
-      .invokeMethod('NativeGeofenceService.demoteToBackground');
+  static Future<void> demoteToBackground() async => _backgroundApi
+      .demoteToBackground()
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
   /// Stop receiving geofence events for a given [Geofence].
-  static Future<bool> removeGeofence(Geofence region) async =>
-      await removeGeofenceById(region.id);
+  static Future<void> removeGeofence(Geofence region) async =>
+      removeGeofenceById(region.id);
 
   /// Stop receiving geofence events for an identifier associated with a
   /// geofence region.
-  static Future<bool> removeGeofenceById(String id) async => await _channel
-      .invokeMethod('NativeGeofencePlugin.removeGeofence', <dynamic>[id]);
+  static Future<void> removeGeofenceById(String id) async => _api
+      .removeGeofenceById(id: id)
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
   /// Stop receiving geofence events for all registered geofences.
-  static Future<bool> removeAllGeofences() async =>
-      await _channel.invokeMethod('NativeGeofencePlugin.removeAllGeofences');
+  static Future<void> removeAllGeofences() async => _api
+      .removeAllGeofences()
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 }
