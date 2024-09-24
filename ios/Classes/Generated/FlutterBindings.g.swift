@@ -83,12 +83,13 @@ enum GeofenceEvent: Int {
 enum NativeGeofenceErrorCode: Int {
   case unknown = 0
   case pluginInternal = 1
-  case invalidArguments = 2
-  case channelError = 3
-  case missingLocationPermission = 4
-  case missingBackgroundLocationPermission = 5
-  case geofenceNotFound = 6
-  case callbackNotFound = 7
+  case setupError = 2
+  case invalidArguments = 3
+  case channelError = 4
+  case missingLocationPermission = 5
+  case missingBackgroundLocationPermission = 6
+  case geofenceNotFound = 7
+  case callbackNotFound = 8
 }
 
 /// Generated class from Pigeon that represents data sent in messages.

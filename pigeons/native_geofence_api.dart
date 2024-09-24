@@ -99,6 +99,7 @@ class GeofenceCallbackParams {
 enum NativeGeofenceErrorCode {
   unknown,
   pluginInternal,
+  setupError,
   invalidArguments,
   channelError,
   missingLocationPermission,
