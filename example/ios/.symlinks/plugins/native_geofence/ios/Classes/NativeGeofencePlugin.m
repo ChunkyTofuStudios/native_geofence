@@ -156,7 +156,7 @@ static BOOL backgroundIsolateRun = NO;
 
   _callbackChannel =
       [FlutterMethodChannel methodChannelWithName:@"native_geofence.chunkytofustudios.com/native_geofence_plugin_background"
-                                  binaryMessenger:_headlessRunner];
+                                  binaryMessenger:_headlessRunner.binaryMessenger];
   return self;
 }
 
