@@ -118,7 +118,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
 }
 
 Future<bool> _checkPermissions() async {
-  final locationPerm = await Permission.locationWhenInUse.request();
+  final locationPerm = await Permission.location.request();
   final backgroundLocationPerm = await Permission.locationAlways.request();
   final notificationPerm = await Permission.notification.request();
   return locationPerm.isGranted &&

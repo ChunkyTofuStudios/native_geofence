@@ -12,6 +12,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     
     private let locationManager: CLLocationManager
     private var locationManagerDelegate: LocationManagerDelegate?
+    private let nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl
     private let headlessRunner: FlutterEngine
     private let eventQueue: [AnyHashable]
     
@@ -23,8 +24,12 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         locationManager = CLLocationManager()
         locationManager.allowsBackgroundLocationUpdates = true
         
-        headlessRunner = FlutterEngine(name: "GeofencingIsolate", project: nil, allowHeadlessExecution: true)
-                
+        headlessRunner = FlutterEngine(name: "NativeGeofenceIsolate", project: nil, allowHeadlessExecution: true)
+        
+        nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessRunner.binaryMessenger)
+        locationManagerDelegate = LocationManagerDelegate(nativeGeofenceBackgroundApi: nativeGeofenceBackgroundApi)
+        locationManager.delegate = locationManagerDelegate
+
         eventQueue = [AnyHashable]()
     }
     
@@ -40,6 +45,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         guard let info = FlutterCallbackCache.lookupCallbackInformation(callbackDispatcherHandle) else {
             throw PigeonError(code: String(NativeGeofenceErrorCode.invalidArguments.rawValue), message: "Callback dispatcher not found.", details: nil)
         }
+        
         let entrypoint = info.callbackName
         let uri = info.callbackLibraryPath
         headlessRunner.run(withEntrypoint: entrypoint, libraryURI: uri)
@@ -51,9 +57,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         if !backgroundIsolateRun {
             registerPlugins(headlessRunner)
         }
-        let nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessRunner.binaryMessenger)
-        locationManagerDelegate = LocationManagerDelegate(nativeGeofenceBackgroundApi: nativeGeofenceBackgroundApi)
-        locationManager.delegate = locationManagerDelegate
+        NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessRunner.binaryMessenger, api: nativeGeofenceBackgroundApi)
         backgroundIsolateRun = true
         
         log.info("NativeGeofenceBackgroundApi initialized.")

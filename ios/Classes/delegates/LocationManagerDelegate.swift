@@ -33,6 +33,7 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         }
 
         let params = GeofenceCallbackParams(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
+        nativeGeofenceBackgroundApi.geofenceTriggered(params: params)
     }
 
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
