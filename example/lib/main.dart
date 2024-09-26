@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
       'native_geofence_send_port',
     );
     port.listen((dynamic data) {
-      print('Event: $data');
+      debugPrint('Event: $data');
       setState(() {
         geofenceState = data;
       });
@@ -35,9 +35,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    print('Initializing...');
+    debugPrint('Initializing...');
     await NativeGeofenceManager.instance.initialize();
-    print('Initialization done');
+    debugPrint('Initialization done');
   }
 
   @override

@@ -6,7 +6,14 @@ import 'package:native_geofence/src/generated/platform_bindings.g.dart';
 import 'package:native_geofence/src/model/native_geofence_exception.dart';
 
 class NativeGeofenceTriggerImpl implements NativeGeofenceTriggerApi {
-  NativeGeofenceTriggerImpl() {
+  /// Cached instance of [NativeGeofenceTriggerImpl]
+  static NativeGeofenceTriggerImpl? _instance;
+
+  static ensureInitialized() {
+    _instance ??= NativeGeofenceTriggerImpl._();
+  }
+
+  NativeGeofenceTriggerImpl._() {
     NativeGeofenceTriggerApi.setUp(this);
   }
 

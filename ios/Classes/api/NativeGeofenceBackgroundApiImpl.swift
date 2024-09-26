@@ -24,7 +24,7 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         while !eventQueue.isEmpty {
             let params = eventQueue.removeFirst()
             log.debug("Queue dispatch: sending geofence trigger event for \(params.geofences.first?.id ?? "N/A").")
-            nativeGeoFenceTriggerApi?.geofenceTriggered(params: params, completion: { _ in })
+            callGeofenceTriggerApi(params: params)
         }
     }
     
@@ -40,12 +40,26 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         objc_sync_enter(self)
         defer { objc_sync_exit(self) }
         
-        if let nativeGeoFenceTriggerApi {
+        if nativeGeoFenceTriggerApi != nil {
             log.debug("NativeGeofenceTriggerApi is ready, sending geofence trigger event for \(params.geofences.first?.id ?? "N/A") immediately.")
-            nativeGeoFenceTriggerApi.geofenceTriggered(params: params, completion: { _ in })
+            callGeofenceTriggerApi(params: params)
         } else {
             log.debug("NativeGeofenceTriggerApi is not ready, queuing geofence trigger event \(params.geofences.first?.id ?? "N/A").")
             eventQueue.append(params)
         }
+    }
+    
+    private func callGeofenceTriggerApi(params: GeofenceCallbackParams) {
+        guard let api = nativeGeoFenceTriggerApi else {
+            log.error("NativeGeofenceTriggerApi was nil.")
+            return
+        }
+        api.geofenceTriggered(params: params, completion: { result in
+            if case .success = result {
+                self.log.debug("Geofence trigger event for \(params.geofences.first?.id ?? "N/A") sent successfully.")
+            } else {
+                self.log.error("Geofence trigger event for \(params.geofences.first?.id ?? "N/A") failed to send.")
+            }
+        })
     }
 }

@@ -14,7 +14,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
   static const Location _timesSquare =
       Location(latitude: 40.75798, longitude: -73.98554);
 
-  List<String> registeredGeofences = [];
+  List<String> activeGeofences = [];
   late Geofence data;
 
   @override
@@ -39,7 +39,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Registered Geofences: $registeredGeofences'),
+        Text('Active Geofences: $activeGeofences'),
         SizedBox(height: 40),
         Form(
           child: Column(
@@ -89,6 +89,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
                   }
                   await NativeGeofenceManager.instance
                       .createGeofence(data, geofenceTriggered);
+                  debugPrint('Geofence created: $data');
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Register'),
@@ -97,6 +98,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
               ElevatedButton(
                 onPressed: () async {
                   await NativeGeofenceManager.instance.removeGeofence(data);
+                  debugPrint('Geofence removed: $data');
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Unregister'),
@@ -112,8 +114,9 @@ class _CreateGeofenceState extends State<CreateGeofence> {
     final List<String> geofences =
         await NativeGeofenceManager.instance.getRegisteredGeofenceIds();
     setState(() {
-      registeredGeofences = geofences;
+      activeGeofences = geofences;
     });
+    debugPrint('Active geofences updated.');
   }
 }
 
