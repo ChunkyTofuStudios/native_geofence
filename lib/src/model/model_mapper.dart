@@ -68,26 +68,26 @@ extension GeofenceWireMapper on GeofenceWire {
   }
 }
 
-extension GeofenceInfoMapper on GeofenceInfo {
-  GeofenceInfoWire toWire() {
-    return GeofenceInfoWire(
+extension ActiveGeofenceMapper on ActiveGeofence {
+  ActiveGeofenceWire toWire() {
+    return ActiveGeofenceWire(
       id: id,
       location: location.toWire(),
       radiusMeters: radiusMeters,
       triggers: triggers,
-      androidSettings: androidSettings.toWire(),
+      androidSettings: androidSettings?.toWire(),
     );
   }
 }
 
-extension GeofenceInfoWireMapper on GeofenceInfoWire {
-  GeofenceInfo fromWire() {
-    return GeofenceInfo(
+extension ActiveGeofenceWireMapper on ActiveGeofenceWire {
+  ActiveGeofence fromWire() {
+    return ActiveGeofence(
       id: id,
       location: location.fromWire(),
       radiusMeters: radiusMeters,
       triggers: triggers,
-      androidSettings: androidSettings.fromWire(),
+      androidSettings: androidSettings?.fromWire(),
     );
   }
 }

@@ -4,67 +4,74 @@ import OSLog
 import UIKit
 
 public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
-    let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "LocationManagerDelegate")
+    private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofenceApiImpl")
     
-    let _registerPlugins: FlutterPluginRegistrantCallback
-    let _initialized: Bool
-    var _backgroundIsolateRun: Bool
+    private let registerPlugins: FlutterPluginRegistrantCallback
+    private let initialized: Bool
+    private var backgroundIsolateRun: Bool
     
-    let _locationManager: CLLocationManager
-    let _locationManagerDelegate: LocationManagerDelegate
-    let _headlessRunner: FlutterEngine
-    let _persistentState: UserDefaults
-    let _eventQueue: [AnyHashable]
+    private let locationManager: CLLocationManager
+    private var locationManagerDelegate: LocationManagerDelegate?
+    private let headlessRunner: FlutterEngine
+    private let eventQueue: [AnyHashable]
     
     init(registerPlugins: FlutterPluginRegistrantCallback) {
-        _registerPlugins = registerPlugins
-        _initialized = false
-        _backgroundIsolateRun = false
+        self.registerPlugins = registerPlugins
+        initialized = false
+        backgroundIsolateRun = false
         
-        _locationManager = CLLocationManager()
-        _locationManager.allowsBackgroundLocationUpdates = true
+        locationManager = CLLocationManager()
+        locationManager.allowsBackgroundLocationUpdates = true
         
-        _locationManagerDelegate = LocationManagerDelegate()
-        _locationManager.delegate = _locationManagerDelegate
-        
-        _headlessRunner = FlutterEngine(name: "GeofencingIsolate", project: nil, allowHeadlessExecution: true)
-        
-        _persistentState = UserDefaults.standard
-        
-        _eventQueue = [AnyHashable]()
+        headlessRunner = FlutterEngine(name: "GeofencingIsolate", project: nil, allowHeadlessExecution: true)
+                
+        eventQueue = [AnyHashable]()
+    }
+    
+    func initializeWithCachedState() throws {
+        guard let callbackDispatcherHandle = NativeGeofencePersistence.getCallbackDispatcherHandle() else {
+            throw PigeonError(code: String(NativeGeofenceErrorCode.pluginInternal.rawValue), message: "Callback dispatcher not found in UserDefaults.", details: nil)
+        }
+        try initialize(callbackDispatcherHandle: callbackDispatcherHandle)
     }
     
     func initialize(callbackDispatcherHandle: Int64) throws {
-        setCallbackDispatcherHandle(callbackDispatcherHandle)
+        NativeGeofencePersistence.setCallbackDispatcherHandle(callbackDispatcherHandle)
         guard let info = FlutterCallbackCache.lookupCallbackInformation(callbackDispatcherHandle) else {
             throw PigeonError(code: String(NativeGeofenceErrorCode.invalidArguments.rawValue), message: "Callback dispatcher not found.", details: nil)
         }
         let entrypoint = info.callbackName
         let uri = info.callbackLibraryPath
-        _headlessRunner.run(withEntrypoint: entrypoint, libraryURI: uri)
+        headlessRunner.run(withEntrypoint: entrypoint, libraryURI: uri)
         
         // Once our headless runner has been started, we need to register the application's plugins
         // with the runner in order for them to work on the background isolate. `registerPlugins` is
         // a callback set from AppDelegate in the main application. This callback should register
         // all relevant plugins (excluding those which require UI).
-        if !_backgroundIsolateRun {
-            _registerPlugins(_headlessRunner)
+        if !backgroundIsolateRun {
+            registerPlugins(headlessRunner)
         }
-        _backgroundIsolateRun = true
+        let nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessRunner.binaryMessenger)
+        locationManagerDelegate = LocationManagerDelegate(nativeGeofenceBackgroundApi: nativeGeofenceBackgroundApi)
+        locationManager.delegate = locationManagerDelegate
+        backgroundIsolateRun = true
+        
+        log.info("NativeGeofenceBackgroundApi initialized.")
     }
     
     func createGeofence(geofence: GeofenceWire, completion: @escaping (Result<Void, any Error>) -> Void) {
         let region = CLCircularRegion(
             center: CLLocationCoordinate2DMake(geofence.location.latitude, geofence.location.longitude),
             radius: geofence.radiusMeters,
-            identifier: geofence.id)
+            identifier: geofence.id
+        )
         region.notifyOnEntry = geofence.triggers.contains(.enter)
         region.notifyOnExit = geofence.triggers.contains(.exit)
 
-        setRegionCallbackHandle(id: geofence.id, handle: geofence.callbackHandle)
+        NativeGeofencePersistence.setRegionCallbackHandle(id: geofence.id, handle: geofence.callbackHandle)
                 
-        _locationManager.startMonitoring(for: region)
-        _locationManager.requestState(for: region)
+        locationManager.startMonitoring(for: region)
+        locationManager.requestState(for: region)
         
         completion(.success(()))
     }
@@ -75,62 +82,39 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     
     func getGeofenceIds() throws -> [String] {
         var geofenceIds: [String] = []
-        for region in _locationManager.monitoredRegions {
+        for region in locationManager.monitoredRegions {
             geofenceIds.append(region.identifier)
         }
         return geofenceIds
     }
     
-    func getGeofences() throws -> [GeofenceWire] {
-        <#code#>
+    func getGeofences() throws -> [ActiveGeofenceWire] {
+        var geofences: [ActiveGeofenceWire] = []
+        for region in locationManager.monitoredRegions {
+            if let activeGeofence = ActiveGeofenceWires.fromRegion(region) {
+                geofences.append(activeGeofence)
+            } else {
+                log.error("Unknown region type: \(region)")
+            }
+        }
+        return geofences
     }
     
     func removeGeofenceById(id: String, completion: @escaping (Result<Void, any Error>) -> Void) {
-        for region in _locationManager.monitoredRegions {
+        for region in locationManager.monitoredRegions {
             if region.identifier == id {
-                _locationManager.stopMonitoring(for: region)
-                removeRegionCallbackHandle(id: region.identifier)
+                locationManager.stopMonitoring(for: region)
+                NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
             }
         }
         completion(.success(()))
     }
     
     func removeAllGeofences(completion: @escaping (Result<Void, any Error>) -> Void) {
-        for region in _locationManager.monitoredRegions {
-            _locationManager.stopMonitoring(for: region)
-            removeRegionCallbackHandle(id: region.identifier)
+        for region in locationManager.monitoredRegions {
+            locationManager.stopMonitoring(for: region)
+            NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
         }
         completion(.success(()))
-    }
-    
-    private func setCallbackDispatcherHandle(_ handle: Int64) {
-        _persistentState.set(
-            NSNumber(value: handle),
-            forKey: Constants.CALLBACK_DISPATCHER_KEY)
-    }
-    
-    private func getRegionCallbackMapping() -> [AnyHashable: Any] {
-        var callbackDict = _persistentState.dictionary(forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
-        if callbackDict == nil {
-            callbackDict = [:]
-            _persistentState.set(callbackDict, forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
-        }
-        return callbackDict!
-    }
-    
-    private func setRegionCallbackMapping(_ mapping: inout [AnyHashable: Any]) {
-        _persistentState.set(mapping, forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
-    }
-    
-    private func setRegionCallbackHandle(id: String, handle: Int64) {
-        var mapping = getRegionCallbackMapping()
-        mapping[id] = NSNumber(value: handle)
-        setRegionCallbackMapping(&mapping)
-    }
-    
-    private func removeRegionCallbackHandle(id: String) {
-        var mapping = getRegionCallbackMapping()
-        mapping.removeValue(forKey: id)
-        setRegionCallbackMapping(&mapping)
     }
 }

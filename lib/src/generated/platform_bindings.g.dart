@@ -40,7 +40,6 @@ enum GeofenceEvent {
 enum NativeGeofenceErrorCode {
   unknown,
   pluginInternal,
-  setupError,
   invalidArguments,
   channelError,
   missingLocationPermission,
@@ -157,13 +156,13 @@ class GeofenceWire {
   }
 }
 
-class GeofenceInfoWire {
-  GeofenceInfoWire({
+class ActiveGeofenceWire {
+  ActiveGeofenceWire({
     required this.id,
     required this.location,
     required this.radiusMeters,
     required this.triggers,
-    required this.androidSettings,
+    this.androidSettings,
   });
 
   String id;
@@ -174,9 +173,7 @@ class GeofenceInfoWire {
 
   List<GeofenceEvent> triggers;
 
-  /// [initialTriggers] will be an empty list as it can't be retreived from the
-  /// OS on Android.
-  AndroidGeofenceSettingsWire androidSettings;
+  AndroidGeofenceSettingsWire? androidSettings;
 
   Object encode() {
     return <Object?>[
@@ -188,14 +185,14 @@ class GeofenceInfoWire {
     ];
   }
 
-  static GeofenceInfoWire decode(Object result) {
+  static ActiveGeofenceWire decode(Object result) {
     result as List<Object?>;
-    return GeofenceInfoWire(
+    return ActiveGeofenceWire(
       id: result[0]! as String,
       location: result[1]! as LocationWire,
       radiusMeters: result[2]! as double,
       triggers: (result[3] as List<Object?>?)!.cast<GeofenceEvent>(),
-      androidSettings: result[4]! as AndroidGeofenceSettingsWire,
+      androidSettings: result[4] as AndroidGeofenceSettingsWire?,
     );
   }
 }
@@ -208,7 +205,7 @@ class GeofenceCallbackParams {
     required this.callbackHandle,
   });
 
-  List<GeofenceInfoWire> geofences;
+  List<ActiveGeofenceWire> geofences;
 
   GeofenceEvent event;
 
@@ -228,7 +225,7 @@ class GeofenceCallbackParams {
   static GeofenceCallbackParams decode(Object result) {
     result as List<Object?>;
     return GeofenceCallbackParams(
-      geofences: (result[0] as List<Object?>?)!.cast<GeofenceInfoWire>(),
+      geofences: (result[0] as List<Object?>?)!.cast<ActiveGeofenceWire>(),
       event: result[1]! as GeofenceEvent,
       location: result[2] as LocationWire?,
       callbackHandle: result[3]! as int,
@@ -259,7 +256,7 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is GeofenceWire) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is GeofenceInfoWire) {
+    }    else if (value is ActiveGeofenceWire) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
     }    else if (value is GeofenceCallbackParams) {
@@ -286,7 +283,7 @@ class _PigeonCodec extends StandardMessageCodec {
       case 133: 
         return GeofenceWire.decode(readValue(buffer)!);
       case 134: 
-        return GeofenceInfoWire.decode(readValue(buffer)!);
+        return ActiveGeofenceWire.decode(readValue(buffer)!);
       case 135: 
         return GeofenceCallbackParams.decode(readValue(buffer)!);
       default:
@@ -401,7 +398,7 @@ class NativeGeofenceApi {
     }
   }
 
-  Future<List<GeofenceWire>> getGeofences() async {
+  Future<List<ActiveGeofenceWire>> getGeofences() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.native_geofence.NativeGeofenceApi.getGeofences$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -424,7 +421,7 @@ class NativeGeofenceApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<GeofenceWire>();
+      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<ActiveGeofenceWire>();
     }
   }
 

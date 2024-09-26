@@ -71,7 +71,7 @@ class NativeGeofenceManager {
   /// Get all [Geofence] regions and their properties.
   ///
   /// If there are no geofences registered it returns an empty list.
-  static Future<List<Geofence>> getRegisteredGeofences() async => _api
+  static Future<List<ActiveGeofence>> getRegisteredGeofences() async => _api
       .getGeofences()
       .then((value) => value.map((e) => e.fromWire()).toList())
       .catchError(NativeGeofenceExceptionMapper.catchError<List<Geofence>>);

@@ -62,17 +62,15 @@ class GeofenceWire {
   });
 }
 
-class GeofenceInfoWire {
+class ActiveGeofenceWire {
   final String id;
   final LocationWire location;
   final double radiusMeters;
   final List<GeofenceEvent> triggers;
 
-  /// [initialTriggers] will be an empty list as it can't be retreived from the
-  /// OS on Android.
-  final AndroidGeofenceSettingsWire androidSettings;
+  final AndroidGeofenceSettingsWire? androidSettings;
 
-  const GeofenceInfoWire({
+  const ActiveGeofenceWire({
     required this.id,
     required this.location,
     required this.radiusMeters,
@@ -82,7 +80,7 @@ class GeofenceInfoWire {
 }
 
 class GeofenceCallbackParams {
-  final List<GeofenceInfoWire> geofences;
+  final List<ActiveGeofenceWire> geofences;
   final GeofenceEvent event;
   final LocationWire? location;
   final int callbackHandle;
@@ -99,7 +97,6 @@ class GeofenceCallbackParams {
 enum NativeGeofenceErrorCode {
   unknown,
   pluginInternal,
-  setupError,
   invalidArguments,
   channelError,
   missingLocationPermission,
@@ -119,7 +116,7 @@ abstract class NativeGeofenceApi {
 
   List<String> getGeofenceIds();
 
-  List<GeofenceWire> getGeofences();
+  List<ActiveGeofenceWire> getGeofences();
 
   @async
   void removeGeofenceById({required String id});

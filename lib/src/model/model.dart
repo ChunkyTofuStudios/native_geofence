@@ -8,6 +8,7 @@ class Location {
   const Location({required this.latitude, required this.longitude});
 }
 
+/// Android specific Geofence settings.
 class AndroidGeofenceSettings {
   /// Sets the geofence behavior at the moment when the geofences are added.
   /// For example, listing [GeofenceEvent.enter] here will trigger the Geofence
@@ -73,18 +74,23 @@ class Geofence {
   });
 }
 
-/// A subset of [Geofence] which is returned by the OS when requested.
-class GeofenceInfo {
+/// A Geofence that is registered and is actively being tracked.
+///
+/// This type is a subset of [Geofence] and is returned by the plugin/OS GET
+/// APIs.
+class ActiveGeofence {
   final String id;
   final Location location;
   final double radiusMeters;
   final List<GeofenceEvent> triggers;
 
+  /// Only available on Android.
+  ///
   /// The [initialTriggers] field will always be an empty list because Android
   /// does not provide this information when a Geofence triggers.
-  final AndroidGeofenceSettings androidSettings;
+  final AndroidGeofenceSettings? androidSettings;
 
-  const GeofenceInfo({
+  const ActiveGeofence({
     required this.id,
     required this.location,
     required this.radiusMeters,

@@ -69,13 +69,12 @@ enum class GeofenceEvent(val raw: Int) {
 enum class NativeGeofenceErrorCode(val raw: Int) {
   UNKNOWN(0),
   PLUGIN_INTERNAL(1),
-  SETUP_ERROR(2),
-  INVALID_ARGUMENTS(3),
-  CHANNEL_ERROR(4),
-  MISSING_LOCATION_PERMISSION(5),
-  MISSING_BACKGROUND_LOCATION_PERMISSION(6),
-  GEOFENCE_NOT_FOUND(7),
-  CALLBACK_NOT_FOUND(8);
+  INVALID_ARGUMENTS(2),
+  CHANNEL_ERROR(3),
+  MISSING_LOCATION_PERMISSION(4),
+  MISSING_BACKGROUND_LOCATION_PERMISSION(5),
+  GEOFENCE_NOT_FOUND(6),
+  CALLBACK_NOT_FOUND(7);
 
   companion object {
     fun ofRaw(raw: Int): NativeGeofenceErrorCode? {
@@ -166,26 +165,22 @@ data class GeofenceWire (
 }
 
 /** Generated class from Pigeon that represents data sent in messages. */
-data class GeofenceInfoWire (
+data class ActiveGeofenceWire (
   val id: String,
   val location: LocationWire,
   val radiusMeters: Double,
   val triggers: List<GeofenceEvent>,
-  /**
-   * [initialTriggers] will be an empty list as it can't be retreived from the
-   * OS on Android.
-   */
-  val androidSettings: AndroidGeofenceSettingsWire
+  val androidSettings: AndroidGeofenceSettingsWire? = null
 )
  {
   companion object {
-    fun fromList(pigeonVar_list: List<Any?>): GeofenceInfoWire {
+    fun fromList(pigeonVar_list: List<Any?>): ActiveGeofenceWire {
       val id = pigeonVar_list[0] as String
       val location = pigeonVar_list[1] as LocationWire
       val radiusMeters = pigeonVar_list[2] as Double
       val triggers = pigeonVar_list[3] as List<GeofenceEvent>
-      val androidSettings = pigeonVar_list[4] as AndroidGeofenceSettingsWire
-      return GeofenceInfoWire(id, location, radiusMeters, triggers, androidSettings)
+      val androidSettings = pigeonVar_list[4] as AndroidGeofenceSettingsWire?
+      return ActiveGeofenceWire(id, location, radiusMeters, triggers, androidSettings)
     }
   }
   fun toList(): List<Any?> {
@@ -201,7 +196,7 @@ data class GeofenceInfoWire (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class GeofenceCallbackParams (
-  val geofences: List<GeofenceInfoWire>,
+  val geofences: List<ActiveGeofenceWire>,
   val event: GeofenceEvent,
   val location: LocationWire? = null,
   val callbackHandle: Long
@@ -209,7 +204,7 @@ data class GeofenceCallbackParams (
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): GeofenceCallbackParams {
-      val geofences = pigeonVar_list[0] as List<GeofenceInfoWire>
+      val geofences = pigeonVar_list[0] as List<ActiveGeofenceWire>
       val event = pigeonVar_list[1] as GeofenceEvent
       val location = pigeonVar_list[2] as LocationWire?
       val callbackHandle = pigeonVar_list[3] as Long
@@ -255,7 +250,7 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          GeofenceInfoWire.fromList(it)
+          ActiveGeofenceWire.fromList(it)
         }
       }
       135.toByte() -> {
@@ -288,7 +283,7 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is GeofenceInfoWire -> {
+      is ActiveGeofenceWire -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
@@ -308,7 +303,7 @@ interface NativeGeofenceApi {
   fun createGeofence(geofence: GeofenceWire, callback: (Result<Unit>) -> Unit)
   fun reCreateAfterReboot()
   fun getGeofenceIds(): List<String>
-  fun getGeofences(): List<GeofenceWire>
+  fun getGeofences(): List<ActiveGeofenceWire>
   fun removeGeofenceById(id: String, callback: (Result<Unit>) -> Unit)
   fun removeAllGeofences(callback: (Result<Unit>) -> Unit)
 
