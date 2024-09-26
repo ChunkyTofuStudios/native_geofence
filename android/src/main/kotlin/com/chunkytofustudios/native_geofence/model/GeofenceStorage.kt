@@ -10,6 +10,7 @@ class GeofenceStorage(
     private val location: LocationStorage,
     private val radiusMeters: Double,
     private val triggers: List<GeofenceEvent>,
+    private val iosSettings: IosGeofenceSettingsStorage,
     private val androidSettings: AndroidGeofenceSettingsStorage,
     private val callbackHandle: Long
 ) {
@@ -20,6 +21,7 @@ class GeofenceStorage(
                 LocationStorage.fromWire(e.location),
                 e.radiusMeters,
                 e.triggers,
+                IosGeofenceSettingsStorage.fromWire(e.iosSettings),
                 AndroidGeofenceSettingsStorage.fromWire(e.androidSettings),
                 e.callbackHandle
             )
@@ -32,6 +34,7 @@ class GeofenceStorage(
             location.toWire(),
             radiusMeters,
             triggers,
+            iosSettings.toWire(),
             androidSettings.toWire(),
             callbackHandle
         )

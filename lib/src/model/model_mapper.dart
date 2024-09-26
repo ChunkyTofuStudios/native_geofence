@@ -106,6 +106,16 @@ extension ActiveGeofenceWireMapper on ActiveGeofenceWire {
   }
 }
 
+extension GeofenceCallbackParamsWireMapper on GeofenceCallbackParamsWire {
+  GeofenceCallbackParams fromWire() {
+    return GeofenceCallbackParams(
+      geofences: geofences.map((e) => e.fromWire()).toList(),
+      event: event,
+      location: location?.fromWire(),
+    );
+  }
+}
+
 extension NativeGeofenceExceptionMapper on NativeGeofenceException {
   static NativeGeofenceException fromPlatformException(PlatformException ex) {
     return NativeGeofenceException(

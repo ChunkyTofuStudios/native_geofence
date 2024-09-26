@@ -6,6 +6,9 @@ import UIKit
 public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofenceApiImpl")
     
+    // Prevent multiple instances of CLLocationManager to avoid duplicate triggers.
+    private static var sharedLocationManager: CLLocationManager?
+    
     private let registerPlugins: FlutterPluginRegistrantCallback
     private let initialized: Bool
     private var backgroundIsolateRun: Bool
@@ -21,7 +24,8 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         initialized = false
         backgroundIsolateRun = false
         
-        locationManager = CLLocationManager()
+        locationManager = NativeGeofenceApiImpl.sharedLocationManager ?? CLLocationManager()
+        NativeGeofenceApiImpl.sharedLocationManager = locationManager
         locationManager.allowsBackgroundLocationUpdates = true
         
         headlessRunner = FlutterEngine(name: "NativeGeofenceIsolate", project: nil, allowHeadlessExecution: true)

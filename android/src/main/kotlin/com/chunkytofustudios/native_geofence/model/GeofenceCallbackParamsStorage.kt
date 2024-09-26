@@ -1,6 +1,6 @@
 package com.chunkytofustudios.native_geofence.model
 
-import GeofenceCallbackParams
+import GeofenceCallbackParamsWire
 import GeofenceEvent
 import kotlinx.serialization.Serializable
 
@@ -12,7 +12,7 @@ class GeofenceCallbackParamsStorage(
     private val callbackHandle: Long
 ) {
     companion object {
-        fun fromWire(e: GeofenceCallbackParams): GeofenceCallbackParamsStorage {
+        fun fromWire(e: GeofenceCallbackParamsWire): GeofenceCallbackParamsStorage {
             return GeofenceCallbackParamsStorage(
                 e.geofences.map { ActiveGeofenceStorage.fromWire(it) }.toList(),
                 e.event,
@@ -22,8 +22,8 @@ class GeofenceCallbackParamsStorage(
         }
     }
 
-    fun toWire(): GeofenceCallbackParams {
-        return GeofenceCallbackParams(
+    fun toWire(): GeofenceCallbackParamsWire {
+        return GeofenceCallbackParamsWire(
             geofences.map { it.toWire() }.toList(),
             event,
             location?.toWire(),

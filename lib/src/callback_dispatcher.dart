@@ -11,5 +11,5 @@ void callbackDispatcher() {
   // Create the NativeGeofenceTriggerApi.
   NativeGeofenceTriggerImpl.ensureInitialized();
   // Create the NativeGeofenceBackgroundApi.
-  NativeGeofenceBackgroundManager.createInstance();
+  createNativeGeofenceBackgroundManagerInstance();
 }

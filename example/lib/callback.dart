@@ -10,8 +10,7 @@ import 'package:native_geofence/native_geofence.dart';
 
 @pragma('vm:entry-point')
 Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
-  debugPrint(
-      'Fences: ${params.geofences} Location ${params.location} Event: ${params.event}');
+  debugPrint('geofenceTriggered params: $params');
   final SendPort? send =
       IsolateNameServer.lookupPortByName('native_geofence_send_port');
   send?.send(params.event.name);

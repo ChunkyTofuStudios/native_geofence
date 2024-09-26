@@ -32,7 +32,7 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             return
         }
 
-        let params = GeofenceCallbackParams(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
+        let params = GeofenceCallbackParamsWire(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
         nativeGeofenceBackgroundApi.geofenceTriggered(params: params)
     }
 

@@ -89,6 +89,7 @@ enum NativeGeofenceErrorCode: Int {
   case missingBackgroundLocationPermission = 5
   case geofenceNotFound = 6
   case callbackNotFound = 7
+  case callbackInvalid = 8
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
@@ -253,7 +254,7 @@ struct ActiveGeofenceWire {
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
-struct GeofenceCallbackParams {
+struct GeofenceCallbackParamsWire {
   var geofences: [ActiveGeofenceWire]
   var event: GeofenceEvent
   var location: LocationWire? = nil
@@ -262,13 +263,13 @@ struct GeofenceCallbackParams {
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
-  static func fromList(_ pigeonVar_list: [Any?]) -> GeofenceCallbackParams? {
+  static func fromList(_ pigeonVar_list: [Any?]) -> GeofenceCallbackParamsWire? {
     let geofences = pigeonVar_list[0] as! [ActiveGeofenceWire]
     let event = pigeonVar_list[1] as! GeofenceEvent
     let location: LocationWire? = nilOrValue(pigeonVar_list[2])
     let callbackHandle = pigeonVar_list[3] as! Int64
 
-    return GeofenceCallbackParams(
+    return GeofenceCallbackParamsWire(
       geofences: geofences,
       event: event,
       location: location,
@@ -311,7 +312,7 @@ private class FlutterBindingsPigeonCodecReader: FlutterStandardReader {
     case 135:
       return ActiveGeofenceWire.fromList(self.readValue() as! [Any?])
     case 136:
-      return GeofenceCallbackParams.fromList(self.readValue() as! [Any?])
+      return GeofenceCallbackParamsWire.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -341,7 +342,7 @@ private class FlutterBindingsPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? ActiveGeofenceWire {
       super.writeByte(135)
       super.writeValue(value.toList())
-    } else if let value = value as? GeofenceCallbackParams {
+    } else if let value = value as? GeofenceCallbackParamsWire {
       super.writeByte(136)
       super.writeValue(value.toList())
     } else {
@@ -543,7 +544,7 @@ class NativeGeofenceBackgroundApiSetup {
 }
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol NativeGeofenceTriggerApiProtocol {
-  func geofenceTriggered(params paramsArg: GeofenceCallbackParams, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func geofenceTriggered(params paramsArg: GeofenceCallbackParamsWire, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class NativeGeofenceTriggerApi: NativeGeofenceTriggerApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -555,7 +556,7 @@ class NativeGeofenceTriggerApi: NativeGeofenceTriggerApiProtocol {
   var codec: FlutterBindingsPigeonCodec {
     return FlutterBindingsPigeonCodec.shared
   }
-  func geofenceTriggered(params paramsArg: GeofenceCallbackParams, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+  func geofenceTriggered(params paramsArg: GeofenceCallbackParamsWire, completion: @escaping (Result<Void, PigeonError>) -> Void) {
     let channelName: String = "dev.flutter.pigeon.native_geofence.NativeGeofenceTriggerApi.geofenceTriggered\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([paramsArg] as [Any?]) { response in

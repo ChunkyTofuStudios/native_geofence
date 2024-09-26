@@ -89,13 +89,13 @@ class ActiveGeofenceWire {
   });
 }
 
-class GeofenceCallbackParams {
+class GeofenceCallbackParamsWire {
   final List<ActiveGeofenceWire> geofences;
   final GeofenceEvent event;
   final LocationWire? location;
   final int callbackHandle;
 
-  const GeofenceCallbackParams({
+  const GeofenceCallbackParamsWire({
     required this.geofences,
     required this.event,
     required this.location,
@@ -113,6 +113,7 @@ enum NativeGeofenceErrorCode {
   missingBackgroundLocationPermission,
   geofenceNotFound,
   callbackNotFound,
+  callbackInvalid,
 }
 
 @HostApi()
@@ -147,5 +148,5 @@ abstract class NativeGeofenceBackgroundApi {
 @FlutterApi()
 abstract class NativeGeofenceTriggerApi {
   @async
-  void geofenceTriggered(GeofenceCallbackParams params);
+  void geofenceTriggered(GeofenceCallbackParamsWire params);
 }

@@ -16,13 +16,6 @@ class NativeGeofenceBackgroundManager {
     return _instance!;
   }
 
-  /// Private constructor internal to plugin, do not use.
-  static Future<void> createInstance() async {
-    final api = NativeGeofenceBackgroundApi();
-    _instance = NativeGeofenceBackgroundManager._(api);
-    await api.triggerApiInitialized();
-  }
-
   final NativeGeofenceBackgroundApi _api;
 
   NativeGeofenceBackgroundManager._(this._api);
@@ -41,4 +34,12 @@ class NativeGeofenceBackgroundManager {
   Future<void> demoteToBackground() async => _api
       .demoteToBackground()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
+}
+
+/// Private method internal to plugin, do not use.
+Future<void> createNativeGeofenceBackgroundManagerInstance() async {
+  final api = NativeGeofenceBackgroundApi();
+  NativeGeofenceBackgroundManager._instance =
+      NativeGeofenceBackgroundManager._(api);
+  await api.triggerApiInitialized();
 }

@@ -6,6 +6,11 @@ class Location {
   final double longitude;
 
   const Location({required this.latitude, required this.longitude});
+
+  @override
+  String toString() {
+    return 'Location(${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)})';
+  }
 }
 
 /// iOS specific Geofence settings.
@@ -19,6 +24,11 @@ class IosGeofenceSettings {
   const IosGeofenceSettings({
     this.initialTrigger = false,
   });
+
+  @override
+  String toString() {
+    return 'IosGeofenceSettings(initialTrigger: $initialTrigger)';
+  }
 }
 
 /// Android specific Geofence settings.
@@ -51,6 +61,15 @@ class AndroidGeofenceSettings {
     this.loiteringDelay = const Duration(minutes: 5),
     this.notificationResponsiveness,
   });
+
+  @override
+  String toString() {
+    return 'AndroidGeofenceSettings('
+        'initialTriggers: [${initialTriggers.map((e) => e.name).join(',')}], '
+        'expiration: ${expiration?.inMinutes}min, '
+        'loiteringDelay: ${loiteringDelay.inMilliseconds}ms, '
+        'notificationResponsiveness: ${notificationResponsiveness?.inMilliseconds}ms)';
+  }
 }
 
 /// A circular region which represents a geofence.
@@ -89,12 +108,24 @@ class Geofence {
     required this.iosSettings,
     required this.androidSettings,
   });
+
+  @override
+  String toString() {
+    return 'Geofence('
+        'id: $id, '
+        'location: $location, '
+        'radiusMeters: $radiusMeters, '
+        'triggers: [${triggers.map((e) => e.name).join(',')}], '
+        'iosSettings: $iosSettings, '
+        'androidSettings: $androidSettings)';
+  }
 }
 
 /// A Geofence that is registered and is actively being tracked.
 ///
 /// This type is a subset of [Geofence] and is returned by the plugin/OS GET
 /// APIs.
+/// Note: [IosGeofenceSettings] is not provided due to platform constraints.
 class ActiveGeofence {
   final String id;
   final Location location;
@@ -107,11 +138,49 @@ class ActiveGeofence {
   /// does not provide this information when a Geofence triggers.
   final AndroidGeofenceSettings? androidSettings;
 
-  const ActiveGeofence({
+  ActiveGeofence({
     required this.id,
     required this.location,
     required this.radiusMeters,
     required this.triggers,
     required this.androidSettings,
   });
+
+  @override
+  String toString() {
+    return 'ActiveGeofence('
+        'id: $id, '
+        'location: $location, '
+        'radiusMeters: $radiusMeters, '
+        'triggers: [${triggers.map((e) => e.name).join(',')}], '
+        'androidSettings: $androidSettings)';
+  }
+}
+
+/// The parameters passed to the geofence callback handler.
+class GeofenceCallbackParams {
+  /// The geofences that triggered the event.
+  /// The list might contain multiple elements on Android.
+  final List<ActiveGeofence> geofences;
+
+  /// The type of geofence event.
+  final GeofenceEvent event;
+
+  /// The location of the device when the geofence event was triggered.
+  /// Only set on Android and even then it might be null.
+  final Location? location;
+
+  const GeofenceCallbackParams({
+    required this.geofences,
+    required this.event,
+    required this.location,
+  });
+
+  @override
+  String toString() {
+    return 'GeofenceCallbackParams('
+        'geofences: [${geofences.map((e) => e.toString()).join(', ')}], '
+        'event: ${event.name}, '
+        'location: $location)';
+  }
 }

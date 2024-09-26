@@ -74,7 +74,8 @@ enum class NativeGeofenceErrorCode(val raw: Int) {
   MISSING_LOCATION_PERMISSION(4),
   MISSING_BACKGROUND_LOCATION_PERMISSION(5),
   GEOFENCE_NOT_FOUND(6),
-  CALLBACK_NOT_FOUND(7);
+  CALLBACK_NOT_FOUND(7),
+  CALLBACK_INVALID(8);
 
   companion object {
     fun ofRaw(raw: Int): NativeGeofenceErrorCode? {
@@ -216,7 +217,7 @@ data class ActiveGeofenceWire (
 }
 
 /** Generated class from Pigeon that represents data sent in messages. */
-data class GeofenceCallbackParams (
+data class GeofenceCallbackParamsWire (
   val geofences: List<ActiveGeofenceWire>,
   val event: GeofenceEvent,
   val location: LocationWire? = null,
@@ -224,12 +225,12 @@ data class GeofenceCallbackParams (
 )
  {
   companion object {
-    fun fromList(pigeonVar_list: List<Any?>): GeofenceCallbackParams {
+    fun fromList(pigeonVar_list: List<Any?>): GeofenceCallbackParamsWire {
       val geofences = pigeonVar_list[0] as List<ActiveGeofenceWire>
       val event = pigeonVar_list[1] as GeofenceEvent
       val location = pigeonVar_list[2] as LocationWire?
       val callbackHandle = pigeonVar_list[3] as Long
-      return GeofenceCallbackParams(geofences, event, location, callbackHandle)
+      return GeofenceCallbackParamsWire(geofences, event, location, callbackHandle)
     }
   }
   fun toList(): List<Any?> {
@@ -281,7 +282,7 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
       }
       136.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          GeofenceCallbackParams.fromList(it)
+          GeofenceCallbackParamsWire.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -317,7 +318,7 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is GeofenceCallbackParams -> {
+      is GeofenceCallbackParamsWire -> {
         stream.write(136)
         writeValue(stream, value.toList())
       }
@@ -542,7 +543,7 @@ class NativeGeofenceTriggerApi(private val binaryMessenger: BinaryMessenger, pri
       FlutterBindingsPigeonCodec()
     }
   }
-  fun geofenceTriggered(paramsArg: GeofenceCallbackParams, callback: (Result<Unit>) -> Unit)
+  fun geofenceTriggered(paramsArg: GeofenceCallbackParamsWire, callback: (Result<Unit>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
     val channelName = "dev.flutter.pigeon.native_geofence.NativeGeofenceTriggerApi.geofenceTriggered$separatedMessageChannelSuffix"

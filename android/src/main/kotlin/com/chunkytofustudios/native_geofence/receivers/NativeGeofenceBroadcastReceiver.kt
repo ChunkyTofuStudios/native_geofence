@@ -1,6 +1,6 @@
 package com.chunkytofustudios.native_geofence.receivers
 
-import GeofenceCallbackParams
+import GeofenceCallbackParamsWire
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -40,7 +40,7 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
         WorkManager.getInstance(context).enqueue(workRequest)
     }
 
-    private fun getGeofenceCallbackParams(intent: Intent): GeofenceCallbackParams? {
+    private fun getGeofenceCallbackParams(intent: Intent): GeofenceCallbackParamsWire? {
         val callbackHandle = intent.getLongExtra(Constants.CALLBACK_HANDLE_KEY, 0)
         if (callbackHandle == 0L) {
             Log.e(TAG, "GeofencingEvent callback handle is missing.")
@@ -82,7 +82,7 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
             Log.w(TAG, "No triggering location found.")
         }
 
-        return GeofenceCallbackParams(
+        return GeofenceCallbackParamsWire(
             triggeringGeofences,
             geofenceEvent,
             location?.let { LocationWires.fromLocation(it) },

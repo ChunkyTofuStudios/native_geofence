@@ -1,6 +1,6 @@
 package com.chunkytofustudios.native_geofence
 
-import GeofenceCallbackParams
+import GeofenceCallbackParamsWire
 import NativeGeofenceTriggerApi
 import android.content.Context
 import android.os.Handler
@@ -140,7 +140,7 @@ class NativeGeofenceBackgroundWorker(
         Log.d(TAG, "BackgroundWorker took ${fetchDuration}ms.")
     }
 
-    private fun getGeofenceCallbackParams(): GeofenceCallbackParams? {
+    private fun getGeofenceCallbackParams(): GeofenceCallbackParamsWire? {
         val jsonData = workerParams.inputData.getString(Constants.WORKER_PAYLOAD_KEY)
         if (jsonData == null) {
             Log.e(TAG, "Worker payload was missing.")
