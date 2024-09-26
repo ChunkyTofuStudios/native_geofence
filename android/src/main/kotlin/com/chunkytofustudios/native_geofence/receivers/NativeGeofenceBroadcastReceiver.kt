@@ -12,8 +12,8 @@ import androidx.work.WorkManager
 import com.chunkytofustudios.native_geofence.Constants
 import com.chunkytofustudios.native_geofence.NativeGeofenceBackgroundWorker
 import com.chunkytofustudios.native_geofence.model.GeofenceCallbackParamsStorage
+import com.chunkytofustudios.native_geofence.util.ActiveGeofenceWires
 import com.chunkytofustudios.native_geofence.util.GeofenceEvents
-import com.chunkytofustudios.native_geofence.util.GeofenceWires
 import com.chunkytofustudios.native_geofence.util.LocationWires
 import com.google.android.gms.location.GeofencingEvent
 import kotlinx.serialization.encodeToString
@@ -70,7 +70,7 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
         // Get the geofences that were triggered. A single event can trigger
         // multiple geofences.
         val triggeringGeofences = geofencingEvent.triggeringGeofences?.map {
-            GeofenceWires.fromGeofence(it)
+            ActiveGeofenceWires.fromGeofence(it)
         }
         if (triggeringGeofences.isNullOrEmpty()) {
             Log.e(TAG, "No triggering geofences found.")

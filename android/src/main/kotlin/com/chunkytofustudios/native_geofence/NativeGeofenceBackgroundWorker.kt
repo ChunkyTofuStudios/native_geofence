@@ -15,7 +15,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor.DartCallback
-import io.flutter.embedding.engine.loader.FlutterLoader
 import io.flutter.view.FlutterCallbackInformation
 import kotlinx.serialization.json.Json
 
@@ -26,7 +25,7 @@ class NativeGeofenceBackgroundWorker(
     ListenableWorker(context, workerParams) {
     companion object {
         const val TAG = "NativeGeofenceBackgroundWorker"
-        private val flutterLoader = FlutterInjector.instance().flutterLoader();
+        private val flutterLoader = FlutterInjector.instance().flutterLoader()
     }
 
     private var engine: FlutterEngine? = null

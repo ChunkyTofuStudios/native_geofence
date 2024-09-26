@@ -1,9 +1,6 @@
 package com.chunkytofustudios.native_geofence.util
 
-import AndroidGeofenceSettingsWire
-import GeofenceInfoWire
 import GeofenceWire
-import LocationWire
 import com.google.android.gms.location.Geofence
 
 class GeofenceWires {
@@ -25,21 +22,6 @@ class GeofenceWires {
                 geofenceBuilder.setNotificationResponsiveness(e.androidSettings.notificationResponsivenessMillis.toInt())
             }
             return geofenceBuilder.build()
-        }
-
-        fun fromGeofence(e: Geofence): GeofenceInfoWire {
-            return GeofenceInfoWire(
-                e.requestId,
-                LocationWire(e.latitude, e.longitude),
-                e.radius.toDouble(),
-                GeofenceEvents.fromMask(e.transitionTypes),
-                AndroidGeofenceSettingsWire(
-                    emptyList(),
-                    e.expirationTime,
-                    e.loiteringDelay.toLong(),
-                    e.notificationResponsiveness.toLong()
-                )
-            )
         }
     }
 }

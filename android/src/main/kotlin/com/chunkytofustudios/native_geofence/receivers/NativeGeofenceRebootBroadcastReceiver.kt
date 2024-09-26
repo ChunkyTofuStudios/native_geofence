@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.chunkytofustudios.native_geofence.Constants
 import com.chunkytofustudios.native_geofence.api.NativeGeofenceApiImpl
 
 class NativeGeofenceRebootBroadcastReceiver : BroadcastReceiver() {
