@@ -3,7 +3,7 @@ import OSLog
 import UIKit
 
 public class NativeGeofencePlugin: NSObject, FlutterPlugin {
-    private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofencePlugin")
+    private static let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofencePlugin")
 
     private static var registerPlugins: FlutterPluginRegistrantCallback? = nil
     private static var instance: NativeGeofencePlugin? = nil
@@ -33,6 +33,8 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
         let plugin = NativeGeofencePlugin(registrar: registrar, registerPlugins: registerPlugins)
         registrar.addApplicationDelegate(plugin)
         instance = plugin
+
+        log.info("NativeGeofencePlugin registered.")
     }
 
     public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [AnyHashable: Any] = [:]) -> Bool {
@@ -43,10 +45,10 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
                 do {
                     try api.initializeWithCachedState()
                 } catch {
-                    log.error("Failed to restart headless service: \(error)")
+                    NativeGeofencePlugin.log.error("Failed to restart headless service: \(error)")
                 }
             } else {
-                log.warning("Application launched but NativeGeofenceApi was never initialized.")
+                NativeGeofencePlugin.log.warning("Application launched but NativeGeofenceApi was never initialized.")
             }
         }
 

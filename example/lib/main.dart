@@ -36,7 +36,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     print('Initializing...');
-    await NativeGeofenceManager.initialize();
+    await NativeGeofenceManager.instance.initialize();
     print('Initialization done');
   }
 

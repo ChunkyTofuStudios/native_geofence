@@ -87,8 +87,8 @@ class _CreateGeofenceState extends State<CreateGeofence> {
                     );
                     return;
                   }
-                  await NativeGeofenceManager.createGeofence(
-                      data, geofenceTriggered);
+                  await NativeGeofenceManager.instance
+                      .createGeofence(data, geofenceTriggered);
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Register'),
@@ -96,7 +96,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
               SizedBox(height: 22),
               ElevatedButton(
                 onPressed: () async {
-                  await NativeGeofenceManager.removeGeofence(data);
+                  await NativeGeofenceManager.instance.removeGeofence(data);
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Unregister'),
@@ -110,7 +110,7 @@ class _CreateGeofenceState extends State<CreateGeofence> {
 
   Future<void> _updateRegisteredGeofences() async {
     final List<String> geofences =
-        await NativeGeofenceManager.getRegisteredGeofenceIds();
+        await NativeGeofenceManager.instance.getRegisteredGeofenceIds();
     setState(() {
       registeredGeofences = geofences;
     });
