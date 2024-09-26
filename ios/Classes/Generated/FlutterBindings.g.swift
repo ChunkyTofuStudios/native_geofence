@@ -117,6 +117,27 @@ struct LocationWire {
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
+struct IosGeofenceSettingsWire {
+  var initialTrigger: Bool
+
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> IosGeofenceSettingsWire? {
+    let initialTrigger = pigeonVar_list[0] as! Bool
+
+    return IosGeofenceSettingsWire(
+      initialTrigger: initialTrigger
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      initialTrigger
+    ]
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
 struct AndroidGeofenceSettingsWire {
   var initialTriggers: [GeofenceEvent]
   var expirationDurationMillis: Int64? = nil
@@ -155,6 +176,7 @@ struct GeofenceWire {
   var location: LocationWire
   var radiusMeters: Double
   var triggers: [GeofenceEvent]
+  var iosSettings: IosGeofenceSettingsWire
   var androidSettings: AndroidGeofenceSettingsWire
   var callbackHandle: Int64
 
@@ -166,14 +188,16 @@ struct GeofenceWire {
     let location = pigeonVar_list[1] as! LocationWire
     let radiusMeters = pigeonVar_list[2] as! Double
     let triggers = pigeonVar_list[3] as! [GeofenceEvent]
-    let androidSettings = pigeonVar_list[4] as! AndroidGeofenceSettingsWire
-    let callbackHandle = pigeonVar_list[5] as! Int64
+    let iosSettings = pigeonVar_list[4] as! IosGeofenceSettingsWire
+    let androidSettings = pigeonVar_list[5] as! AndroidGeofenceSettingsWire
+    let callbackHandle = pigeonVar_list[6] as! Int64
 
     return GeofenceWire(
       id: id,
       location: location,
       radiusMeters: radiusMeters,
       triggers: triggers,
+      iosSettings: iosSettings,
       androidSettings: androidSettings,
       callbackHandle: callbackHandle
     )
@@ -184,6 +208,7 @@ struct GeofenceWire {
       location,
       radiusMeters,
       triggers,
+      iosSettings,
       androidSettings,
       callbackHandle,
     ]
@@ -278,12 +303,14 @@ private class FlutterBindingsPigeonCodecReader: FlutterStandardReader {
     case 131:
       return LocationWire.fromList(self.readValue() as! [Any?])
     case 132:
-      return AndroidGeofenceSettingsWire.fromList(self.readValue() as! [Any?])
+      return IosGeofenceSettingsWire.fromList(self.readValue() as! [Any?])
     case 133:
-      return GeofenceWire.fromList(self.readValue() as! [Any?])
+      return AndroidGeofenceSettingsWire.fromList(self.readValue() as! [Any?])
     case 134:
-      return ActiveGeofenceWire.fromList(self.readValue() as! [Any?])
+      return GeofenceWire.fromList(self.readValue() as! [Any?])
     case 135:
+      return ActiveGeofenceWire.fromList(self.readValue() as! [Any?])
+    case 136:
       return GeofenceCallbackParams.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -302,17 +329,20 @@ private class FlutterBindingsPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? LocationWire {
       super.writeByte(131)
       super.writeValue(value.toList())
-    } else if let value = value as? AndroidGeofenceSettingsWire {
+    } else if let value = value as? IosGeofenceSettingsWire {
       super.writeByte(132)
       super.writeValue(value.toList())
-    } else if let value = value as? GeofenceWire {
+    } else if let value = value as? AndroidGeofenceSettingsWire {
       super.writeByte(133)
       super.writeValue(value.toList())
-    } else if let value = value as? ActiveGeofenceWire {
+    } else if let value = value as? GeofenceWire {
       super.writeByte(134)
       super.writeValue(value.toList())
-    } else if let value = value as? GeofenceCallbackParams {
+    } else if let value = value as? ActiveGeofenceWire {
       super.writeByte(135)
+      super.writeValue(value.toList())
+    } else if let value = value as? GeofenceCallbackParams {
+      super.writeByte(136)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)

@@ -28,6 +28,9 @@ class _CreateGeofenceState extends State<CreateGeofence> {
         GeofenceEvent.enter,
         GeofenceEvent.exit,
       ],
+      iosSettings: IosGeofenceSettings(
+        initialTrigger: true,
+      ),
       androidSettings: AndroidGeofenceSettings(
         initialTriggers: <GeofenceEvent>[GeofenceEvent.enter],
       ),
@@ -89,7 +92,9 @@ class _CreateGeofenceState extends State<CreateGeofence> {
                   }
                   await NativeGeofenceManager.instance
                       .createGeofence(data, geofenceTriggered);
-                  debugPrint('Geofence created: $data');
+                  debugPrint('Geofence created: ${data.id}');
+                  await _updateRegisteredGeofences();
+                  await Future.delayed(const Duration(seconds: 1));
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Register'),
@@ -98,7 +103,9 @@ class _CreateGeofenceState extends State<CreateGeofence> {
               ElevatedButton(
                 onPressed: () async {
                   await NativeGeofenceManager.instance.removeGeofence(data);
-                  debugPrint('Geofence removed: $data');
+                  debugPrint('Geofence removed: ${data.id}');
+                  await _updateRegisteredGeofences();
+                  await Future.delayed(const Duration(seconds: 1));
                   await _updateRegisteredGeofences();
                 },
                 child: const Text('Unregister'),
@@ -135,6 +142,7 @@ extension ModifyGeofence on Geofence {
     Location Function()? location,
     double Function()? radiusMeters,
     List<GeofenceEvent> Function()? triggers,
+    IosGeofenceSettings Function()? iosSettings,
     AndroidGeofenceSettings Function()? androidSettings,
   }) {
     return Geofence(
@@ -142,6 +150,7 @@ extension ModifyGeofence on Geofence {
       location: location?.call() ?? this.location,
       radiusMeters: radiusMeters?.call() ?? this.radiusMeters,
       triggers: triggers?.call() ?? this.triggers,
+      iosSettings: iosSettings?.call() ?? this.iosSettings,
       androidSettings: androidSettings?.call() ?? this.androidSettings,
     );
   }

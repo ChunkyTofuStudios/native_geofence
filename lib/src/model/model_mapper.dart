@@ -16,6 +16,18 @@ extension LocationWireMapper on LocationWire {
   }
 }
 
+extension IosGeofenceSettingsMapper on IosGeofenceSettings {
+  IosGeofenceSettingsWire toWire() {
+    return IosGeofenceSettingsWire(initialTrigger: initialTrigger);
+  }
+}
+
+extension IosGeofenceSettingsWireMapper on IosGeofenceSettingsWire {
+  IosGeofenceSettings fromWire() {
+    return IosGeofenceSettings(initialTrigger: initialTrigger);
+  }
+}
+
 extension AndroidGeofenceSettingsMapper on AndroidGeofenceSettings {
   AndroidGeofenceSettingsWire toWire() {
     return AndroidGeofenceSettingsWire(
@@ -50,6 +62,7 @@ extension GeofenceMapper on Geofence {
       location: location.toWire(),
       radiusMeters: radiusMeters,
       triggers: triggers,
+      iosSettings: iosSettings.toWire(),
       androidSettings: androidSettings.toWire(),
       callbackHandle: callbackHandle,
     );
@@ -63,6 +76,7 @@ extension GeofenceWireMapper on GeofenceWire {
       location: location.fromWire(),
       radiusMeters: radiusMeters,
       triggers: triggers,
+      iosSettings: iosSettings.fromWire(),
       androidSettings: androidSettings.fromWire(),
     );
   }

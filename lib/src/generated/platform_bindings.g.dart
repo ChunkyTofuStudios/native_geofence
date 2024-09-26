@@ -74,6 +74,27 @@ class LocationWire {
   }
 }
 
+class IosGeofenceSettingsWire {
+  IosGeofenceSettingsWire({
+    required this.initialTrigger,
+  });
+
+  bool initialTrigger;
+
+  Object encode() {
+    return <Object?>[
+      initialTrigger,
+    ];
+  }
+
+  static IosGeofenceSettingsWire decode(Object result) {
+    result as List<Object?>;
+    return IosGeofenceSettingsWire(
+      initialTrigger: result[0]! as bool,
+    );
+  }
+}
+
 class AndroidGeofenceSettingsWire {
   AndroidGeofenceSettingsWire({
     required this.initialTriggers,
@@ -116,6 +137,7 @@ class GeofenceWire {
     required this.location,
     required this.radiusMeters,
     required this.triggers,
+    required this.iosSettings,
     required this.androidSettings,
     required this.callbackHandle,
   });
@@ -128,6 +150,8 @@ class GeofenceWire {
 
   List<GeofenceEvent> triggers;
 
+  IosGeofenceSettingsWire iosSettings;
+
   AndroidGeofenceSettingsWire androidSettings;
 
   int callbackHandle;
@@ -138,6 +162,7 @@ class GeofenceWire {
       location,
       radiusMeters,
       triggers,
+      iosSettings,
       androidSettings,
       callbackHandle,
     ];
@@ -150,8 +175,9 @@ class GeofenceWire {
       location: result[1]! as LocationWire,
       radiusMeters: result[2]! as double,
       triggers: (result[3] as List<Object?>?)!.cast<GeofenceEvent>(),
-      androidSettings: result[4]! as AndroidGeofenceSettingsWire,
-      callbackHandle: result[5]! as int,
+      iosSettings: result[4]! as IosGeofenceSettingsWire,
+      androidSettings: result[5]! as AndroidGeofenceSettingsWire,
+      callbackHandle: result[6]! as int,
     );
   }
 }
@@ -250,17 +276,20 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is LocationWire) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is AndroidGeofenceSettingsWire) {
+    }    else if (value is IosGeofenceSettingsWire) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is GeofenceWire) {
+    }    else if (value is AndroidGeofenceSettingsWire) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is ActiveGeofenceWire) {
+    }    else if (value is GeofenceWire) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is GeofenceCallbackParams) {
+    }    else if (value is ActiveGeofenceWire) {
       buffer.putUint8(135);
+      writeValue(buffer, value.encode());
+    }    else if (value is GeofenceCallbackParams) {
+      buffer.putUint8(136);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -279,12 +308,14 @@ class _PigeonCodec extends StandardMessageCodec {
       case 131: 
         return LocationWire.decode(readValue(buffer)!);
       case 132: 
-        return AndroidGeofenceSettingsWire.decode(readValue(buffer)!);
+        return IosGeofenceSettingsWire.decode(readValue(buffer)!);
       case 133: 
-        return GeofenceWire.decode(readValue(buffer)!);
+        return AndroidGeofenceSettingsWire.decode(readValue(buffer)!);
       case 134: 
-        return ActiveGeofenceWire.decode(readValue(buffer)!);
+        return GeofenceWire.decode(readValue(buffer)!);
       case 135: 
+        return ActiveGeofenceWire.decode(readValue(buffer)!);
+      case 136: 
         return GeofenceCallbackParams.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

@@ -8,6 +8,19 @@ class Location {
   const Location({required this.latitude, required this.longitude});
 }
 
+/// iOS specific Geofence settings.
+class IosGeofenceSettings {
+  /// Whether a geofence event should trigger immediately when the geofence is
+  /// added.
+  /// For example, setting this to true will trigger an [GeofenceEvent.enter]
+  /// event if the user is already inside the geofence.
+  final bool initialTrigger;
+
+  const IosGeofenceSettings({
+    this.initialTrigger = false,
+  });
+}
+
 /// Android specific Geofence settings.
 class AndroidGeofenceSettings {
   /// Sets the geofence behavior at the moment when the geofences are added.
@@ -62,6 +75,9 @@ class Geofence {
   /// Note: [GeofenceEvent.dwell] is not supported on iOS.
   final List<GeofenceEvent> triggers;
 
+  /// iOS specific settings.
+  final IosGeofenceSettings iosSettings;
+
   /// Android specific settings.
   final AndroidGeofenceSettings androidSettings;
 
@@ -70,6 +86,7 @@ class Geofence {
     required this.location,
     required this.radiusMeters,
     required this.triggers,
+    required this.iosSettings,
     required this.androidSettings,
   });
 }

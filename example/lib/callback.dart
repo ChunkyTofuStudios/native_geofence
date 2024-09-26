@@ -20,7 +20,7 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
     final plugin = FlutterLocalNotificationsPlugin();
     if (!(await plugin.initialize(InitializationSettings(
           android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-          iOS: DarwinInitializationSettings(),
+          iOS: DarwinInitializationSettings(defaultPresentBanner: false),
         )) ??
         false)) {
       debugPrint('Failed to initialize notifications plugin.');
@@ -43,7 +43,8 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
           'Geofence Triggers',
           styleInformation: BigTextStyleInformation(message),
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+            interruptionLevel: InterruptionLevel.active),
       ),
       payload: 'item x',
     );

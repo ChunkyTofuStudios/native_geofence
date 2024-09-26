@@ -75,7 +75,9 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         NativeGeofencePersistence.setRegionCallbackHandle(id: geofence.id, handle: geofence.callbackHandle)
                 
         locationManager.startMonitoring(for: region)
-        locationManager.requestState(for: region)
+        if geofence.iosSettings.initialTrigger {
+            locationManager.requestState(for: region)
+        }
         
         completion(.success(()))
     }

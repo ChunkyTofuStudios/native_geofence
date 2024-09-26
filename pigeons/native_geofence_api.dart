@@ -30,6 +30,14 @@ class LocationWire {
   const LocationWire({required this.latitude, required this.longitude});
 }
 
+class IosGeofenceSettingsWire {
+  final bool initialTrigger;
+
+  const IosGeofenceSettingsWire({
+    required this.initialTrigger,
+  });
+}
+
 class AndroidGeofenceSettingsWire {
   final List<GeofenceEvent> initialTriggers;
   final int? expirationDurationMillis;
@@ -49,6 +57,7 @@ class GeofenceWire {
   final LocationWire location;
   final double radiusMeters;
   final List<GeofenceEvent> triggers;
+  final IosGeofenceSettingsWire iosSettings;
   final AndroidGeofenceSettingsWire androidSettings;
   final int callbackHandle;
 
@@ -57,6 +66,7 @@ class GeofenceWire {
     required this.location,
     required this.radiusMeters,
     required this.triggers,
+    required this.iosSettings,
     required this.androidSettings,
     required this.callbackHandle,
   });
