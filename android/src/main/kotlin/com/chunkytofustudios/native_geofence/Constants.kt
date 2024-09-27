@@ -14,5 +14,7 @@ class Constants {
         const val ACTION_SHUTDOWN = "SHUTDOWN"
 
         const val WORKER_PAYLOAD_KEY = "$PACKAGE_NAME.worker_payload"
+
+        const val ISOLATE_HOLDER_WAKE_LOCK_TAG = "$PACKAGE_NAME:wake_lock"
     }
 }

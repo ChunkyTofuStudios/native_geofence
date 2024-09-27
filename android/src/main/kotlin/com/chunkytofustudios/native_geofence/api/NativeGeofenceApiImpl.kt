@@ -4,12 +4,15 @@ import ActiveGeofenceWire
 import FlutterError
 import GeofenceWire
 import NativeGeofenceApi
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.chunkytofustudios.native_geofence.Constants
 import com.chunkytofustudios.native_geofence.util.GeofenceEvents
 import com.chunkytofustudios.native_geofence.receivers.NativeGeofenceBroadcastReceiver
@@ -47,7 +50,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
         for (geofence in geofences) {
             createGeofenceHelper(geofence, false, null)
         }
-        Log.i(TAG, "${geofences.size} geofences re-created after reboot.")
+        Log.d(TAG, "${geofences.size} geofences re-created.")
     }
 
     override fun getGeofenceIds(): List<String> {
@@ -63,7 +66,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
         geofencingClient.removeGeofences(listOf(id)).run {
             addOnSuccessListener {
                 NativeGeofencePersistence.removeGeofence(context, id)
-                Log.i(TAG, "Removed Geofence ID=$id.")
+                Log.d(TAG, "Removed Geofence ID=$id.")
                 callback.invoke(Result.success(Unit))
             }
             addOnFailureListener {
@@ -87,7 +90,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
         geofencingClient.removeGeofences(getGeofencePendingIndent(context, null)).run {
             addOnSuccessListener {
                 NativeGeofencePersistence.removeAllGeofences(context)
-                Log.i(TAG, "Removed all geofences.")
+                Log.d(TAG, "Removed all geofences (if any).")
                 callback.invoke(Result.success(Unit))
             }
             addOnFailureListener {
@@ -135,6 +138,8 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
         cache: Boolean,
         callback: ((Result<Unit>) -> Unit)?
     ) {
+        // We try to create the Geofence without checking for permissions.
+        // Only if creation fails we will alert the Flutter plugin of the permission issue.
         geofencingClient.addGeofences(
             GeofencingRequest.Builder().apply {
                 setInitialTrigger(GeofenceEvents.createMask(geofence.androidSettings.initialTriggers))
@@ -146,11 +151,47 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                 if (cache) {
                     NativeGeofencePersistence.saveGeofence(context, geofence)
                 }
-                Log.i(TAG, "Successfully added Geofence ID=${geofence.id}.")
+                Log.d(TAG, "Successfully added Geofence ID=${geofence.id}.")
                 callback?.invoke(Result.success(Unit))
             }
             addOnFailureListener {
                 Log.e(TAG, "Failed to add Geofence ID=${geofence.id}: $it")
+
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    Log.e(TAG, "Lacking permission: ACCESS_FINE_LOCATION")
+                    callback?.invoke(
+                        Result.failure(
+                            FlutterError(
+                                NativeGeofenceErrorCode.MISSING_LOCATION_PERMISSION.raw.toString(),
+                                "The ACCESS_FINE_LOCATION needs to be granted in order to setup geofences."
+                            )
+                        )
+                    )
+                    return@addOnFailureListener
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+                        != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        Log.e(TAG, "Running on API ${Build.VERSION.SDK_INT} and lacking permission: ACCESS_BACKGROUND_LOCATION")
+                        callback?.invoke(
+                            Result.failure(
+                                FlutterError(
+                                    NativeGeofenceErrorCode.MISSING_BACKGROUND_LOCATION_PERMISSION.raw.toString(),
+                                    "The ACCESS_BACKGROUND_LOCATION needs to be granted in order to setup geofences.",
+                                    "Running on Android API ${Build.VERSION.SDK_INT}."
+                                )
+                            )
+                        )
+                        return@addOnFailureListener
+                    }
+                }
+
                 callback?.invoke(
                     Result.failure(
                         FlutterError(

@@ -106,13 +106,40 @@ class GeofenceCallbackParamsWire {
 /// Errors that can occur when interacting with the native geofence API.
 enum NativeGeofenceErrorCode {
   unknown,
+
+  /// A plugin internal error. Please report these as bugs on GitHub.
   pluginInternal,
+
+  /// The arguments passed to the method are invalid.
   invalidArguments,
+
+  /// An error occurred while communicating with the native platform.
   channelError,
+
+  /// The required location permission was not granted.
+  /// On Android we need: `ACCESS_FINE_LOCATION`
+  /// On iOS we need: `NSLocationWhenInUseUsageDescription`
+  /// Please use an external permission manager such as "permission_handler" to
+  /// request the permission from the user.
   missingLocationPermission,
+
+  /// The required background location permission was not granted.
+  /// On Android we need: `ACCESS_BACKGROUND_LOCATION` (for API level 29+)
+  /// On iOS we need: `NSLocationAlwaysUsageDescription`
   missingBackgroundLocationPermission,
+
+  /// The geofence deletion failed because the geofence was not found.
+  /// This is safe to ignore.
   geofenceNotFound,
+
+  /// The specified geofence callback was not found.
+  /// This can happen for old geofence callback functions that were
+  /// moved/renamed. Please re-create those geofences.
   callbackNotFound,
+
+  /// The specified geofence callback function signature is invalid.
+  /// This can happen if the callback function signature has changed or due to
+  /// plugin contract changes.
   callbackInvalid,
 }
 

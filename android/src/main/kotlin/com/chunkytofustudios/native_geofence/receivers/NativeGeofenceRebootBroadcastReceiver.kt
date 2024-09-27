@@ -8,12 +8,11 @@ import com.chunkytofustudios.native_geofence.api.NativeGeofenceApiImpl
 
 class NativeGeofenceRebootBroadcastReceiver : BroadcastReceiver() {
     companion object {
-        const val TAG = "NativeGeofenceReboot"
+        const val TAG = "NativeGeofenceRebootBroadcastReceiver"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Boot completed broadcast received.")
-        Log.i(TAG, "Re-registering geofences!")
+        Log.i(TAG, "Boot completed broadcast received. Re-creating geofences!")
         NativeGeofenceApiImpl(context).reCreateAfterReboot()
     }
 }

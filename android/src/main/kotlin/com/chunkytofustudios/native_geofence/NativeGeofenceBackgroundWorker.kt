@@ -28,7 +28,7 @@ class NativeGeofenceBackgroundWorker(
         private val flutterLoader = FlutterInjector.instance().flutterLoader()
     }
 
-    private var engine: FlutterEngine? = null
+    private var flutterEngine: FlutterEngine? = null
 
     private var startTime: Long = 0
 
@@ -45,7 +45,7 @@ class NativeGeofenceBackgroundWorker(
     override fun startWork(): ListenableFuture<Result> {
         startTime = System.currentTimeMillis()
 
-        engine = FlutterEngine(applicationContext)
+        flutterEngine = FlutterEngine(applicationContext)
 
         if (!flutterLoader.initialized()) {
             flutterLoader.startInitialization(applicationContext)
@@ -67,7 +67,7 @@ class NativeGeofenceBackgroundWorker(
                 return@ensureInitializationCompleteAsync
             }
 
-            engine?.let { engine ->
+            flutterEngine?.let { engine ->
                 val callbackInfo =
                     FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
                 if (callbackInfo == null) {
@@ -100,7 +100,7 @@ class NativeGeofenceBackgroundWorker(
     }
 
     fun triggerApiReady() {
-        val lEngine = engine
+        val lEngine = flutterEngine
         if (lEngine == null) {
             Log.e(TAG, "FlutterEngine was null.")
             stopEngine(Result.failure())
@@ -109,7 +109,7 @@ class NativeGeofenceBackgroundWorker(
 
         val nativeGeofenceTriggerApi =
             NativeGeofenceTriggerApi(lEngine.dartExecutor.binaryMessenger)
-        Log.i(TAG, "NativeGeofenceTriggerApi setup complete.")
+        Log.d(TAG, "NativeGeofenceTriggerApi setup complete.")
 
         val params = getGeofenceCallbackParams()
         if (params == null) {
@@ -133,11 +133,11 @@ class NativeGeofenceBackgroundWorker(
 
         // If stopEngine is called from `onStopped`, it may not be from the main thread.
         Handler(Looper.getMainLooper()).post {
-            engine?.destroy()
-            engine = null
+            flutterEngine?.destroy()
+            flutterEngine = null
         }
 
-        Log.d(TAG, "BackgroundWorker took ${fetchDuration}ms.")
+        Log.d(TAG, "Work took ${fetchDuration}ms.")
     }
 
     private fun getGeofenceCallbackParams(): GeofenceCallbackParamsWire? {

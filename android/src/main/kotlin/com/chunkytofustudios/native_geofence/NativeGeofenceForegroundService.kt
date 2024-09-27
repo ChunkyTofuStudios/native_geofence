@@ -8,26 +8,34 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlin.time.Duration.Companion.minutes
 
-class IsolateHolderService : Service() {
+// TODO: Allow customizing notification details.
+class NativeGeofenceForegroundService : Service() {
     companion object {
         @JvmStatic
-        private val WAKELOCK_TAG = "IsolateHolderService::WAKE_LOCK"
+        private val TAG = "NativeGeofenceForegroundService"
+
+        // TODO: Consider using random ID.
+        private const val NOTIFICATION_ID = 938130
+
+        private val WAKE_LOCK_TIMEOUT = 5.minutes
     }
 
     override fun onBind(p0: Intent): IBinder? {
         return null
     }
 
-
     override fun onCreate() {
         super.onCreate()
         val channelId = "native_geofence_plugin_channel"
         val channel = NotificationChannel(
             channelId,
-            "Flutter Native Geofence Plugin",
+            "Geofence Events",
+            // This has to be at least IMPORTANCE_LOW.
+            // Source: https://developer.android.com/develop/background-work/services/foreground-services#start
             NotificationManager.IMPORTANCE_LOW
         )
 
@@ -38,25 +46,27 @@ class IsolateHolderService : Service() {
             channel
         )
         val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Almost home!")
-            .setContentText("Within 1KM of home. Fine location tracking enabled.")
+            .setContentTitle("Processing geofence event.")
+            .setContentText("We noticed you are near a key location and are checking if we can help.")
             .setSmallIcon(imageId)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
         (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).apply {
+            newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.ISOLATE_HOLDER_WAKE_LOCK_TAG).apply {
                 setReferenceCounted(false)
-                acquire(5.minutes.inWholeMilliseconds)
+                acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds)
             }
         }
-        startForeground(1, notification)
+        startForeground(NOTIFICATION_ID, notification)
+
+        Log.d(TAG, "Foreground service started with notification ID=$NOTIFICATION_ID.")
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         if (intent.action == Constants.ACTION_SHUTDOWN) {
             (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).apply {
+                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.ISOLATE_HOLDER_WAKE_LOCK_TAG).apply {
                     if (isHeld) {
                         release()
                     }
@@ -64,6 +74,7 @@ class IsolateHolderService : Service() {
             }
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
+            Log.d(TAG, "Foreground service stopped.")
         }
         return START_STICKY
     }

@@ -1,3 +1,7 @@
+## Known Issues
+
+* **iOS:** After reboot, the first geofence event is triggered twice, one immediatly after the other. We recommend checking the last trigger time of a geofence in your app to discard duplicates.
+
 **Author's Note:** this plugin is not officially supported. Please feel free to pull it into your own projects, but _there is no official version hosted on pub.dev and support may be limited_. If you run into any issues running this sample, please file an issue or, even better, submit a pull request!
 
 What is geofencing? 
