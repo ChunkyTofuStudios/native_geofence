@@ -4,7 +4,7 @@ import OSLog
 import UIKit
 
 public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
-    private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofenceApiImpl")
+    private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofenceApiImpl")
     
     // Prevent multiple instances of CLLocationManager to avoid duplicate triggers.
     private static var sharedLocationManager: CLLocationManager?
@@ -14,8 +14,9 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     private var backgroundIsolateRun: Bool
     
     private let locationManager: CLLocationManager
-    private var locationManagerDelegate: LocationManagerDelegate?
+    private var locationManagerDelegate: LocationManagerDelegate
     private let nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl
+    
     private let headlessRunner: FlutterEngine
     private let eventQueue: [AnyHashable]
     
@@ -28,11 +29,13 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         NativeGeofenceApiImpl.sharedLocationManager = locationManager
         locationManager.allowsBackgroundLocationUpdates = true
         
-        headlessRunner = FlutterEngine(name: "NativeGeofenceIsolate", project: nil, allowHeadlessExecution: true)
+        headlessRunner = FlutterEngine(name: Constants.HEADLESS_FLUTTER_ENGINE_NAME, project: nil, allowHeadlessExecution: true)
         
         nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessRunner.binaryMessenger)
-        locationManagerDelegate = LocationManagerDelegate(nativeGeofenceBackgroundApi: nativeGeofenceBackgroundApi)
-        locationManager.delegate = locationManagerDelegate
+        let delegate = LocationManagerDelegate(nativeGeofenceBackgroundApi: nativeGeofenceBackgroundApi)
+        locationManagerDelegate = delegate
+        locationManager.delegate = delegate
+        log.debug("CLLocationManager delegate updated to instance with ID=\(delegate.instanceId).")
 
         eventQueue = [AnyHashable]()
     }
@@ -41,6 +44,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         guard let callbackDispatcherHandle = NativeGeofencePersistence.getCallbackDispatcherHandle() else {
             throw PigeonError(code: String(NativeGeofenceErrorCode.pluginInternal.rawValue), message: "Callback dispatcher not found in UserDefaults.", details: nil)
         }
+        log.debug("Initializing with cached state.")
         try initialize(callbackDispatcherHandle: callbackDispatcherHandle)
     }
     
@@ -64,7 +68,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessRunner.binaryMessenger, api: nativeGeofenceBackgroundApi)
         backgroundIsolateRun = true
         
-        log.info("NativeGeofenceBackgroundApi initialized.")
+        log.debug("NativeGeofenceBackgroundApi initialized.")
     }
     
     func createGeofence(geofence: GeofenceWire, completion: @escaping (Result<Void, any Error>) -> Void) {
@@ -83,11 +87,13 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
             locationManager.requestState(for: region)
         }
         
+        log.debug("Created geofence ID=\(geofence.id).")
+        
         completion(.success(()))
     }
     
     func reCreateAfterReboot() throws {
-        log.info("Re-create after reboot called. Not doing anything.")
+        log.info("Re-create after reboot called. iOS handles this automatically, nothing for us to do here.")
     }
     
     func getGeofenceIds() throws -> [String] {
@@ -95,6 +101,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         for region in locationManager.monitoredRegions {
             geofenceIds.append(region.identifier)
         }
+        log.debug("getGeofenceIds() found \(geofenceIds.count) geofence(s).")
         return geofenceIds
     }
     
@@ -107,24 +114,31 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
                 log.error("Unknown region type: \(region)")
             }
         }
+        log.debug("getGeofences() found \(geofences.count) geofence(s).")
         return geofences
     }
     
     func removeGeofenceById(id: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        var removedCount = 0
         for region in locationManager.monitoredRegions {
             if region.identifier == id {
                 locationManager.stopMonitoring(for: region)
                 NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+                removedCount += 1
             }
         }
+        log.debug("Removed \(removedCount) geofence(s) with ID=\(id).")
         completion(.success(()))
     }
     
     func removeAllGeofences(completion: @escaping (Result<Void, any Error>) -> Void) {
+        var removedCount = 0
         for region in locationManager.monitoredRegions {
             locationManager.stopMonitoring(for: region)
             NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+            removedCount += 1
         }
+        log.debug("Removed \(removedCount) geofence(s).")
         completion(.success(()))
     }
 }

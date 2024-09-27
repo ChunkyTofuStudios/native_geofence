@@ -3,7 +3,7 @@ import Flutter
 import OSLog
 
 class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
-    private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofenceBackgroundApiImpl")
+    private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofenceBackgroundApiImpl")
     
     private let binaryMessenger: FlutterBinaryMessenger
     
@@ -19,11 +19,11 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         defer { objc_sync_exit(self) }
         
         nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
-        log.info("NativeGeofenceTriggerApi setup complete.")
+        log.debug("NativeGeofenceTriggerApi setup complete.")
         
         while !eventQueue.isEmpty {
             let params = eventQueue.removeFirst()
-            log.debug("Queue dispatch: sending geofence trigger event for \(params.geofences.first?.id ?? "N/A").")
+            log.debug("Queue dispatch: sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
             callGeofenceTriggerApi(params: params)
         }
     }
@@ -41,24 +41,25 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         defer { objc_sync_exit(self) }
         
         if nativeGeoFenceTriggerApi != nil {
-            log.debug("NativeGeofenceTriggerApi is ready, sending geofence trigger event for \(NativeGeofenceBackgroundApiImpl.geofenceIds(params)) immediately.")
+            log.debug("NativeGeofenceTriggerApi is ready, sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] immediately.")
             callGeofenceTriggerApi(params: params)
         } else {
-            log.debug("NativeGeofenceTriggerApi is not ready, queuing geofence trigger event \(NativeGeofenceBackgroundApiImpl.geofenceIds(params)).")
+            log.debug("NativeGeofenceTriggerApi is not ready, queuing geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
             eventQueue.append(params)
         }
     }
     
     private func callGeofenceTriggerApi(params: GeofenceCallbackParamsWire) {
         guard let api = nativeGeoFenceTriggerApi else {
-            log.error("NativeGeofenceTriggerApi was nil.")
+            log.error("NativeGeofenceTriggerApi was nil, this should not happen.")
             return
         }
+        log.debug("Calling Dart callback to process geofence trigger for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] event=\(String(describing: params.event)).")
         api.geofenceTriggered(params: params, completion: { result in
             if case .success = result {
-                self.log.debug("Geofence trigger event for \(NativeGeofenceBackgroundApiImpl.geofenceIds(params)) sent successfully.")
+                self.log.debug("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] processed successfully.")
             } else {
-                self.log.error("Geofence trigger event for \(NativeGeofenceBackgroundApiImpl.geofenceIds(params)) failed to send.")
+                self.log.error("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] failed.")
             }
         })
     }

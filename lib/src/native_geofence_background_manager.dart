@@ -14,7 +14,7 @@ class NativeGeofenceBackgroundManager {
     assert(
         _instance != null,
         'NativeGeofenceBackgroundManager has not been initialized yet; '
-        'Are you running within a Geofencing callback?');
+        'Are you running within a Geofence callback?');
     return _instance!;
   }
 
@@ -22,15 +22,15 @@ class NativeGeofenceBackgroundManager {
 
   NativeGeofenceBackgroundManager._(this._api);
 
-  /// Promote the geofencing service to a foreground service.
+  /// Promote the geofence callback to an Android foreground service.
   ///
   /// Android only, has no effect on iOS (but is safe to call).
   Future<void> promoteToForeground() async => _api
       .promoteToForeground()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
-  /// Demote the geofencing service from a foreground service to a background
-  /// service.
+  /// Demote the geofence service from an Android foreground service to a
+  /// background service.
   ///
   /// Android only, has no effect on iOS (but is safe to call).
   Future<void> demoteToBackground() async => _api

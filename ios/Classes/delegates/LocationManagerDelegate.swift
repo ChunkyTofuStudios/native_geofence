@@ -2,28 +2,30 @@ import CoreLocation
 import OSLog
 
 class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
-    private let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "LocationManagerDelegate")
+    private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "LocationManagerDelegate")
 
     private let nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl
+    let instanceId: Int
 
     init(nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl) {
         self.nativeGeofenceBackgroundApi = nativeGeofenceBackgroundApi
+        instanceId = Int.random(in: 1 ... 1000000)
     }
 
     func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
-        log.debug("didDetermineState: \(state.rawValue) for region: \(region.identifier)")
+        log.debug("didDetermineState: \(String(describing: state)) for geofence ID: \(region.identifier)")
 
         guard let event: GeofenceEvent = switch state {
         case .unknown: nil
         case .inside: .enter
         case .outside: .exit
         } else {
-            log.error("Unknown Geofence state: \(state.rawValue)")
+            log.error("Unknown CLRegionState: \(String(describing: state))")
             return
         }
 
         guard let activeGeofence = ActiveGeofenceWires.fromRegion(region) else {
-            log.error("Unknown region type: \(region)")
+            log.error("Unknown CLRegion type: \(String(describing: type(of: region)))")
             return
         }
 
@@ -37,6 +39,6 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
-        log.debug("monitoringDidFailFor: \(region?.identifier ?? "nil") withError: \(error)")
+        log.error("monitoringDidFailFor: \(region?.identifier ?? "nil") withError: \(error)")
     }
 }

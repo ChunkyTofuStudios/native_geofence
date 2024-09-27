@@ -3,7 +3,7 @@ import OSLog
 import UIKit
 
 public class NativeGeofencePlugin: NSObject, FlutterPlugin {
-    private static let log = Logger(subsystem: "com.chunkytofustudios.native_geofence", category: "NativeGeofencePlugin")
+    private static let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofencePlugin")
 
     private static var registerPlugins: FlutterPluginRegistrantCallback? = nil
     private static var instance: NativeGeofencePlugin? = nil
@@ -13,12 +13,13 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
     init(registrar: FlutterPluginRegistrar, registerPlugins: FlutterPluginRegistrantCallback) {
         nativeGeofenceApi = NativeGeofenceApiImpl(registerPlugins: registerPlugins)
         NativeGeofenceApiSetup.setUp(binaryMessenger: registrar.messenger(), api: nativeGeofenceApi)
-        NativeGeofencePlugin.log.info("NativeGeofenceApi initialized.")
+        NativeGeofencePlugin.log.debug("NativeGeofenceApi initialized.")
     }
 
     /// Called from the Flutter plugins AppDelegate.swift.
     public static func setPluginRegistrantCallback(_ callback: FlutterPluginRegistrantCallback) {
         registerPlugins = callback
+        log.debug("registerPlugins updated.")
     }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -28,6 +29,7 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
         if instance != nil { return }
 
         guard let registerPlugins else {
+            log.error("registerPlugins was nil at application launch.")
             fatalError("Please ensure you have updated your ios/Runner/AppDelegate to call setPluginRegistrantCallback. See the plugin documentation for more information.")
         }
 
@@ -35,7 +37,7 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
         registrar.addApplicationDelegate(plugin)
         instance = plugin
 
-        log.info("NativeGeofencePlugin registered.")
+        log.debug("NativeGeofencePlugin registered.")
     }
 
     public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [AnyHashable: Any] = [:]) -> Bool {
