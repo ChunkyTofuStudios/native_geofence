@@ -31,7 +31,7 @@ extension IosGeofenceSettingsWireMapper on IosGeofenceSettingsWire {
 extension AndroidGeofenceSettingsMapper on AndroidGeofenceSettings {
   AndroidGeofenceSettingsWire toWire() {
     return AndroidGeofenceSettingsWire(
-      initialTriggers: initialTriggers,
+      initialTriggers: initialTriggers.toList(),
       expirationDurationMillis: expiration?.inMilliseconds,
       loiteringDelayMillis: loiteringDelay.inMilliseconds,
       notificationResponsivenessMillis:
@@ -43,7 +43,7 @@ extension AndroidGeofenceSettingsMapper on AndroidGeofenceSettings {
 extension AndroidGeofenceSettingsWireMapper on AndroidGeofenceSettingsWire {
   AndroidGeofenceSettings fromWire() {
     return AndroidGeofenceSettings(
-      initialTriggers: initialTriggers,
+      initialTriggers: initialTriggers.toSet(),
       expiration: expirationDurationMillis != null
           ? Duration(milliseconds: expirationDurationMillis!)
           : null,
@@ -61,7 +61,7 @@ extension GeofenceMapper on Geofence {
       id: id,
       location: location.toWire(),
       radiusMeters: radiusMeters,
-      triggers: triggers,
+      triggers: triggers.toList(),
       iosSettings: iosSettings.toWire(),
       androidSettings: androidSettings.toWire(),
       callbackHandle: callbackHandle,
@@ -75,7 +75,7 @@ extension GeofenceWireMapper on GeofenceWire {
       id: id,
       location: location.fromWire(),
       radiusMeters: radiusMeters,
-      triggers: triggers,
+      triggers: triggers.toSet(),
       iosSettings: iosSettings.fromWire(),
       androidSettings: androidSettings.fromWire(),
     );
@@ -88,7 +88,7 @@ extension ActiveGeofenceMapper on ActiveGeofence {
       id: id,
       location: location.toWire(),
       radiusMeters: radiusMeters,
-      triggers: triggers,
+      triggers: triggers.toList(),
       androidSettings: androidSettings?.toWire(),
     );
   }
@@ -100,7 +100,7 @@ extension ActiveGeofenceWireMapper on ActiveGeofenceWire {
       id: id,
       location: location.fromWire(),
       radiusMeters: radiusMeters,
-      triggers: triggers,
+      triggers: triggers.toSet(),
       androidSettings: androidSettings?.fromWire(),
     );
   }

@@ -7,6 +7,12 @@ class Location {
 
   const Location({required this.latitude, required this.longitude});
 
+  bool get isValid =>
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180;
+
   @override
   String toString() {
     return 'Location(${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)})';
@@ -36,7 +42,7 @@ class AndroidGeofenceSettings {
   /// Sets the geofence behavior at the moment when the geofences are added.
   /// For example, listing [GeofenceEvent.enter] here will trigger the Geofence
   /// immediately if the user is already inside the geofence.
-  final List<GeofenceEvent> initialTriggers;
+  final Set<GeofenceEvent> initialTriggers;
 
   /// The geofence will be removed automatically after this period of time.
   /// If you don't set this the geofence will never expire.
@@ -92,7 +98,7 @@ class Geofence {
   /// The types of geofence events to listen for.
   ///
   /// Note: [GeofenceEvent.dwell] is not supported on iOS.
-  final List<GeofenceEvent> triggers;
+  final Set<GeofenceEvent> triggers;
 
   /// iOS specific settings.
   final IosGeofenceSettings iosSettings;
@@ -130,7 +136,7 @@ class ActiveGeofence {
   final String id;
   final Location location;
   final double radiusMeters;
-  final List<GeofenceEvent> triggers;
+  final Set<GeofenceEvent> triggers;
 
   /// Only available on Android.
   ///

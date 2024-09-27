@@ -14,7 +14,11 @@ class NativeGeofenceManager {
   static NativeGeofenceManager? _instance;
 
   static NativeGeofenceManager get instance {
-    _instance ??= NativeGeofenceManager._();
+    try {
+      _instance ??= NativeGeofenceManager._();
+    } catch (e, stackTrace) {
+      throw NativeGeofenceExceptionMapper.fromError(e, stackTrace);
+    }
     return _instance!;
   }
 
@@ -24,8 +28,12 @@ class NativeGeofenceManager {
 
   /// Initialize the plugin.
   Future<void> initialize() async {
-    final CallbackHandle? callback =
-        PluginUtilities.getCallbackHandle(callbackDispatcher);
+    final CallbackHandle? callback;
+    try {
+      callback = PluginUtilities.getCallbackHandle(callbackDispatcher);
+    } catch (e, stackTrace) {
+      throw NativeGeofenceExceptionMapper.fromError(e, stackTrace);
+    }
     if (callback == null) {
       throw NativeGeofenceException.internal(
           message: 'Callback dispatcher is invalid.');
@@ -42,17 +50,34 @@ class NativeGeofenceManager {
   /// with [region] occurs.
   Future<void> createGeofence(
       Geofence geofence, GeofenceCallback callback) async {
+    if (geofence.id.isEmpty) {
+      throw NativeGeofenceException.invalidArgument(
+          message: 'Geofence ID cannot be empty.');
+    }
     if (geofence.triggers.isEmpty) {
       throw NativeGeofenceException.invalidArgument(
           message: 'Geofence triggers cannot be empty.');
     }
+    if (!geofence.location.isValid) {
+      throw NativeGeofenceException.invalidArgument(
+          message: 'Geofence location is invalid.');
+    }
+    if (geofence.radiusMeters <= 0) {
+      throw NativeGeofenceException.invalidArgument(
+          message: 'Geofence radius must be strictly positive.');
+    }
     if (Platform.isIOS &&
         geofence.triggers.length == 1 &&
-        geofence.triggers[0] == GeofenceEvent.dwell) {
+        geofence.triggers.first == GeofenceEvent.dwell) {
       throw NativeGeofenceException.invalidArgument(
           message: 'iOS does not support "GeofenceEvent.dwell".');
     }
-    final callbackHandle = PluginUtilities.getCallbackHandle(callback);
+    final CallbackHandle? callbackHandle;
+    try {
+      callbackHandle = PluginUtilities.getCallbackHandle(callback);
+    } catch (e, stackTrace) {
+      throw NativeGeofenceExceptionMapper.fromError(e, stackTrace);
+    }
     if (callbackHandle == null) {
       throw NativeGeofenceException.invalidArgument(
           message: 'Callback is invalid.');
@@ -64,8 +89,9 @@ class NativeGeofenceManager {
 
   /// Re-register geofences after reboot.
   ///
-  /// This function can be called when the autostart feature is not working as
-  /// it should. This way you can handle that case from the app.
+  /// Optiona: This function can be called when the autostart feature is not
+  /// working as it should (e.g. for some Android OEMs). This way you can ensure
+  /// all Geofences are re-created at app launch.
   Future<void> reCreateAfterReboot() async => _api
       .reCreateAfterReboot()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
@@ -86,16 +112,23 @@ class NativeGeofenceManager {
       .catchError(NativeGeofenceExceptionMapper.catchError<List<Geofence>>);
 
   /// Stop receiving geofence events for a given [Geofence].
+  ///
+  /// If the [Geofence] is not registered, this method does nothing.
   Future<void> removeGeofence(Geofence region) async =>
       removeGeofenceById(region.id);
 
   /// Stop receiving geofence events for an identifier associated with a
   /// geofence region.
+  ///
+  /// If a [Geofence] with the given ID is not registered, this method does
+  /// nothing.
   Future<void> removeGeofenceById(String id) async => _api
       .removeGeofenceById(id: id)
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 
   /// Stop receiving geofence events for all registered geofences.
+  ///
+  /// If there are no geofences registered, this method does nothing.
   Future<void> removeAllGeofences() async => _api
       .removeAllGeofences()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);

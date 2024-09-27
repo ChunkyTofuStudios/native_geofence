@@ -24,15 +24,15 @@ class _CreateGeofenceState extends State<CreateGeofence> {
       id: 'zone1',
       location: _timesSquare,
       radiusMeters: 500,
-      triggers: <GeofenceEvent>[
+      triggers: {
         GeofenceEvent.enter,
         GeofenceEvent.exit,
-      ],
+      },
       iosSettings: IosGeofenceSettings(
         initialTrigger: true,
       ),
       androidSettings: AndroidGeofenceSettings(
-        initialTriggers: <GeofenceEvent>[GeofenceEvent.enter],
+        initialTriggers: {GeofenceEvent.enter},
       ),
     );
     _updateRegisteredGeofences();
@@ -141,7 +141,7 @@ extension ModifyGeofence on Geofence {
     String Function()? id,
     Location Function()? location,
     double Function()? radiusMeters,
-    List<GeofenceEvent> Function()? triggers,
+    Set<GeofenceEvent> Function()? triggers,
     IosGeofenceSettings Function()? iosSettings,
     AndroidGeofenceSettings Function()? androidSettings,
   }) {
@@ -170,7 +170,7 @@ extension ModifyLocation on Location {
 
 extension ModifyAndroidGeofenceSettings on AndroidGeofenceSettings {
   AndroidGeofenceSettings copyWith({
-    List<GeofenceEvent> Function()? initialTrigger,
+    Set<GeofenceEvent> Function()? initialTrigger,
     Duration Function()? expiration,
     Duration Function()? loiteringDelay,
     Duration Function()? notificationResponsiveness,

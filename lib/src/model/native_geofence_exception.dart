@@ -30,5 +30,6 @@ class NativeGeofenceException implements Exception {
 
   @override
   String toString() =>
-      'NativeGeofenceException($code, $message, $details, $stacktrace)';
+      'NativeGeofenceException(${code.name}, message=$message, '
+      'details=$details, stacktrace=$stacktrace)';
 }

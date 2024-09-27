@@ -7,7 +7,9 @@ class NativeGeofenceBackgroundManager {
   static NativeGeofenceBackgroundManager? _instance;
 
   /// The singleton instance of [NativeGeofenceBackgroundManager].
-  /// WARNING: Can only be accessed within a Geofencing callback.
+  ///
+  /// WARNING: Can only be accessed within Geofence callbacks. Trying to access
+  /// this anywhere else will throw an [AssertionError].
   static NativeGeofenceBackgroundManager get instance {
     assert(
         _instance != null,
