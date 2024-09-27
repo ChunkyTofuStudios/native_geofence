@@ -117,15 +117,21 @@ enum NativeGeofenceErrorCode {
   channelError,
 
   /// The required location permission was not granted.
+  ///
   /// On Android we need: `ACCESS_FINE_LOCATION`
   /// On iOS we need: `NSLocationWhenInUseUsageDescription`
+  ///
   /// Please use an external permission manager such as "permission_handler" to
   /// request the permission from the user.
   missingLocationPermission,
 
   /// The required background location permission was not granted.
+  ///
   /// On Android we need: `ACCESS_BACKGROUND_LOCATION` (for API level 29+)
-  /// On iOS we need: `NSLocationAlwaysUsageDescription`
+  /// On iOS we need: `NSLocationAlwaysAndWhenInUseUsageDescription`
+  ///
+  /// Please use an external permission manager such as "permission_handler" to
+  /// request the permission from the user.
   missingBackgroundLocationPermission,
 
   /// The geofence deletion failed because the geofence was not found.

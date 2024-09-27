@@ -1,11 +1,25 @@
 ## Known Issues
 
 * **iOS:** After reboot, the first geofence event is triggered twice, one immediatly after the other. We recommend checking the last trigger time of a geofence in your app to discard duplicates.
+* **Android** The emulator does not trigger geofence events when the app is in the background/terminated. This is an [emulator issue](https://www.b4x.com/android/forum/threads/solved-sanity-check-does-the-android-emulator-work-with-geofences.139196/page-2#post-881415). As a workaround you can open Google Maps to get a location fix which will in turn trigger the geofence.
 
-**Author's Note:** this plugin is not officially supported. Please feel free to pull it into your own projects, but _there is no official version hosted on pub.dev and support may be limited_. If you run into any issues running this sample, please file an issue or, even better, submit a pull request!
+## Permissions
 
-What is geofencing? 
-[here](https://developer.android.com/training/location/geofencing)
+### iOS
+
+* NSLocationWhenInUseUsageDescription
+* NSLocationAlwaysAndWhenInUseUsageDescription
+
+[source](https://dwirandyh.medium.com/deep-dive-into-core-location-in-ios-geofencing-region-monitoring-7846802c968e)
+
+### Android
+
+Need to request:
+
+* `ACCESS_FINE_LOCATION`
+* `ACCESS_BACKGROUND_LOCATION` for API level 29+
+
+[source](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences)
 
 # Geofencing
 
@@ -101,13 +115,6 @@ And request the correct permissions for native_geofence:
 ```xml
 <dict>
     ...
-    <string>Main</string>
-    <key>UIRequiredDeviceCapabilities</key>
-    <array>
-        <string>location-services</string>
-        <string>gps</string>
-        <string>armv7</string>
-    </array>
     <key>UIBackgroundModes</key>
     <array>
         <string>location</string>
