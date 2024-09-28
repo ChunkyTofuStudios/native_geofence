@@ -1,12 +1,16 @@
 import 'package:native_geofence/src/generated/platform_bindings.g.dart';
 
 /// A simple representation of a geographic location.
+///
+/// The latitude and longitude are expressed in decimal degrees.
+/// See: https://en.wikipedia.org/wiki/Decimal_degrees
 class Location {
   final double latitude;
   final double longitude;
 
   const Location({required this.latitude, required this.longitude});
 
+  /// Whether this location instance is valid.
   bool get isValid =>
       latitude >= -90 &&
       latitude <= 90 &&
@@ -129,13 +133,24 @@ class Geofence {
 
 /// A Geofence that is registered and is actively being tracked.
 ///
-/// This type is a subset of [Geofence] and is returned by the plugin/OS GET
-/// APIs.
+/// This type is a subset of [Geofence] that is returned by the plugin for GET
+/// calls.
+///
+/// See the [Geofence] class for field details.
+///
 /// Note: [IosGeofenceSettings] is not provided due to platform constraints.
 class ActiveGeofence {
+  /// The ID associated with the geofence.
   final String id;
+
+  /// The location of the geofence.
   final Location location;
+
+  /// The radius, in meters, around [location] that will be considered part of
+  /// the geofence.
   final double radiusMeters;
+
+  /// The types of geofence events to listen for.
   final Set<GeofenceEvent> triggers;
 
   /// Only available on Android.

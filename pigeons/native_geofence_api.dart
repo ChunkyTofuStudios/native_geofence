@@ -1,7 +1,7 @@
 import 'package:pigeon/pigeon.dart';
 
 // After modifying this file run:
-// dart run pigeon --input pigeons/native_geofence_api.dart
+// dart run pigeon --input pigeons/native_geofence_api.dart && dart format .
 
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/generated/platform_bindings.g.dart',

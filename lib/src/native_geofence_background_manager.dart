@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:native_geofence/src/generated/platform_bindings.g.dart';
 import 'package:native_geofence/src/model/model_mapper.dart';
+import 'package:native_geofence/src/model/native_geofence_exception.dart';
 
 class NativeGeofenceBackgroundManager {
   static NativeGeofenceBackgroundManager? _instance;
@@ -25,6 +26,8 @@ class NativeGeofenceBackgroundManager {
   /// Promote the geofence callback to an Android foreground service.
   ///
   /// Android only, has no effect on iOS (but is safe to call).
+  ///
+  /// Throws [NativeGeofenceException].
   Future<void> promoteToForeground() async => _api
       .promoteToForeground()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
@@ -33,6 +36,8 @@ class NativeGeofenceBackgroundManager {
   /// background service.
   ///
   /// Android only, has no effect on iOS (but is safe to call).
+  ///
+  /// Throws [NativeGeofenceException].
   Future<void> demoteToBackground() async => _api
       .demoteToBackground()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);

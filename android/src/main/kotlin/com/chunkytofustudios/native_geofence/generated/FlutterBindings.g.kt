@@ -68,13 +68,48 @@ enum class GeofenceEvent(val raw: Int) {
 /** Errors that can occur when interacting with the native geofence API. */
 enum class NativeGeofenceErrorCode(val raw: Int) {
   UNKNOWN(0),
+  /** A plugin internal error. Please report these as bugs on GitHub. */
   PLUGIN_INTERNAL(1),
+  /** The arguments passed to the method are invalid. */
   INVALID_ARGUMENTS(2),
+  /** An error occurred while communicating with the native platform. */
   CHANNEL_ERROR(3),
+  /**
+   * The required location permission was not granted.
+   *
+   * On Android we need: `ACCESS_FINE_LOCATION`
+   * On iOS we need: `NSLocationWhenInUseUsageDescription`
+   *
+   * Please use an external permission manager such as "permission_handler" to
+   * request the permission from the user.
+   */
   MISSING_LOCATION_PERMISSION(4),
+  /**
+   * The required background location permission was not granted.
+   *
+   * On Android we need: `ACCESS_BACKGROUND_LOCATION` (for API level 29+)
+   * On iOS we need: `NSLocationAlwaysAndWhenInUseUsageDescription`
+   *
+   * Please use an external permission manager such as "permission_handler" to
+   * request the permission from the user.
+   */
   MISSING_BACKGROUND_LOCATION_PERMISSION(5),
+  /**
+   * The geofence deletion failed because the geofence was not found.
+   * This is safe to ignore.
+   */
   GEOFENCE_NOT_FOUND(6),
+  /**
+   * The specified geofence callback was not found.
+   * This can happen for old geofence callback functions that were
+   * moved/renamed. Please re-create those geofences.
+   */
   CALLBACK_NOT_FOUND(7),
+  /**
+   * The specified geofence callback function signature is invalid.
+   * This can happen if the callback function signature has changed or due to
+   * plugin contract changes.
+   */
   CALLBACK_INVALID(8);
 
   companion object {
