@@ -4,8 +4,19 @@
 <dict>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
-	<key>NSPrivacyAccessedAPITypes</key>
-	<array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+        	<!-- UserDefaults used for storing plugin internal data. -->
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+				<!-- Read and write information that is only accessible to the app itself. -->
+                <string>CA92.1</string>
+            </array>
+        </dict>        
+    </array>
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array/>
 	<key>NSPrivacyTracking</key>

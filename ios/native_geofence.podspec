@@ -21,9 +21,6 @@ Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'
 
-  # If your plugin requires a privacy manifest, for example if it uses any
-  # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
-  # plugin's privacy impact, and then uncomment this line. For more information,
-  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'hello_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  # See: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+  s.resource_bundles = {'native_geofence_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 end
