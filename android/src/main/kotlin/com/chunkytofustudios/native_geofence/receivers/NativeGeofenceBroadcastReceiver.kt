@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
@@ -37,7 +38,14 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
-        WorkManager.getInstance(context).enqueue(workRequest)
+        val workManager = WorkManager.getInstance(context)
+        val work = workManager.beginUniqueWork(
+            Constants.GEOFENCE_CALLBACK_WORK_GROUP,
+            // Process geofence callbacks sequentially.
+            ExistingWorkPolicy.APPEND,
+            workRequest
+        )
+        work.enqueue()
     }
 
     private fun getGeofenceCallbackParams(intent: Intent): GeofenceCallbackParamsWire? {

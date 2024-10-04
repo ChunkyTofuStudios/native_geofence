@@ -6,7 +6,7 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
   <dt><b>What is geofencing?</b></dt>
   <dd>A way for your app to be alerted when the user enters or exits a geographical region. You might use geofences to perform location-related tasks. For example, to setup reminders when the user leaves their house.</dd>
   <dt><b>What are the plugin requirements?</b></dt>
-  <dd>iOS 14+ and Android API 29+. You will also need to obtain location permission from the user.</dd>
+  <dd>iOS 14+ and Android API 29+. You will also need to obtain background location permission from the user.</dd>
 </dl>
 
 ## Features
@@ -246,7 +246,7 @@ await NativeGeofenceManager.instance.removeGeofenceById('zone1');
 await NativeGeofenceManager.instance.removeAllGeofences();
 ```
 
-## Error handler
+## Error handling
 
 All errors thrown by this plugin are wrapped in `NativeGeofenceException`.
 
@@ -298,3 +298,7 @@ Pull requests are welcome.
 ## Author
 
 This plugin is developed by [Chunky Tofu Studios](https://chunkytofustudios.com).
+
+You can support us by checking out our apps!
+
+For commercial support please reach out to hello@chunkytofustudios.com.

@@ -16,16 +16,13 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     
     func triggerApiInitialized() throws {
         objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
         
         nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
         log.debug("NativeGeofenceTriggerApi setup complete.")
         
-        while !eventQueue.isEmpty {
-            let params = eventQueue.removeFirst()
-            log.debug("Queue dispatch: sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
-            callGeofenceTriggerApi(params: params)
-        }
+        objc_sync_exit(self)
+        
+        processQueue()
     }
     
     func promoteToForeground() throws {
@@ -49,6 +46,17 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         }
     }
     
+    private func processQueue() {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+        
+        if !eventQueue.isEmpty {
+            let params = eventQueue.removeFirst()
+            log.debug("Queue dispatch: sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
+            callGeofenceTriggerApi(params: params)
+        }
+    }
+    
     private func callGeofenceTriggerApi(params: GeofenceCallbackParamsWire) {
         guard let api = nativeGeoFenceTriggerApi else {
             log.error("NativeGeofenceTriggerApi was nil, this should not happen.")
@@ -61,6 +69,8 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
             } else {
                 self.log.error("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] failed.")
             }
+            // Now that the callback is complete we can process the next item in the queue, if any.
+            self.processQueue()
         })
     }
     
