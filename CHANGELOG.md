@@ -1,3 +1,7 @@
+## 1.0.3
+
+* iOS: Removes `UIBackgroundModes.location` which was not required. Thanks @cbrauchli.
+
 ## 1.0.2
 
 * iOS and Android: Process geofence callbacks sequentially; as opposed to in parallel.

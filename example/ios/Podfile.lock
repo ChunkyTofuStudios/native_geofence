@@ -25,10 +25,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_local_notifications: 4cde75091f6327eb8517fa068a0a5950212d2086
+  flutter_local_notifications: df98d66e515e1ca797af436137b4459b160ad8c9
   native_geofence: 79dbe31eef8e1b6fd798c035b239a355027f20ae
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
 
 PODFILE CHECKSUM: ad2fb2aca9d5ff2ea71f690a2526bbfac1436064
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

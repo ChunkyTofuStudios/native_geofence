@@ -12,7 +12,7 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   permission_handler: ^11.3.1
-  flutter_local_notifications: ^17.2.3
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

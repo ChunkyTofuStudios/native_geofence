@@ -27,7 +27,6 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         
         locationManager = NativeGeofenceApiImpl.sharedLocationManager ?? CLLocationManager()
         NativeGeofenceApiImpl.sharedLocationManager = locationManager
-        locationManager.allowsBackgroundLocationUpdates = true
         
         headlessRunner = FlutterEngine(name: Constants.HEADLESS_FLUTTER_ENGINE_NAME, project: nil, allowHeadlessExecution: true)
         

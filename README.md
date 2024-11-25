@@ -80,13 +80,9 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
 <string>USER_VISIBLE_STRING__DESCRIBE_HOW_YOUR_APP_USES_LOCATION.</string>
 <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 <string>USER_VISIBLE_STRING__DESCRIBE_HOW_YOUR_APP_USES_BACKGROUND_LOCATION.</string>
-<key>UIBackgroundModes</key>
-<array>
-  <string>location</string>
-</array>
 ```
 
-*Explanation: The in-use location permission is required to create geofences. The always location permission and `UIBackgroundModes.location` is [required](https://dwirandyh.medium.com/deep-dive-into-core-location-in-ios-geofencing-region-monitoring-7846802c968e) if you want to be notified of geofence events when your app isn't running.*
+*Explanation: The in-use location permission is required to create geofences. The always location permission is [required](https://dwirandyh.medium.com/deep-dive-into-core-location-in-ios-geofencing-region-monitoring-7846802c968e) if you want to be notified of geofence events when your app isn't running.*
 
 2. Update your AppDelegate to call `NativeGeofencePlugin`:
 
