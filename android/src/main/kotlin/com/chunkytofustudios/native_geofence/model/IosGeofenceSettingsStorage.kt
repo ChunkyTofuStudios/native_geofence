@@ -1,6 +1,6 @@
 package com.chunkytofustudios.native_geofence.model
 
-import IosGeofenceSettingsWire
+import com.chunkytofustudios.native_geofence.generated.IosGeofenceSettingsWire
 import kotlinx.serialization.Serializable
 
 @Serializable

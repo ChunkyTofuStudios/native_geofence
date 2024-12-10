@@ -1,9 +1,9 @@
 package com.chunkytofustudios.native_geofence
 
-import NativeGeofenceApi
 import android.content.Context
 import android.util.Log
 import com.chunkytofustudios.native_geofence.api.NativeGeofenceApiImpl
+import com.chunkytofustudios.native_geofence.generated.NativeGeofenceApi
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 
 class NativeGeofencePlugin : FlutterPlugin {

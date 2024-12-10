@@ -2,6 +2,7 @@
 // See also: https://pub.dev/packages/pigeon
 @file:Suppress("UNCHECKED_CAST", "ArrayInDataClass")
 
+package com.chunkytofustudios.native_geofence.generated
 
 import android.util.Log
 import io.flutter.plugin.common.BasicMessageChannel
@@ -18,7 +19,7 @@ private fun wrapResult(result: Any?): List<Any?> {
 }
 
 private fun wrapError(exception: Throwable): List<Any?> {
-  return if (exception is NativeGeofenceFlutterError) {
+  return if (exception is FlutterError) {
     listOf(
       exception.code,
       exception.message,
@@ -33,8 +34,8 @@ private fun wrapError(exception: Throwable): List<Any?> {
   }
 }
 
-private fun createConnectionError(channelName: String): NativeGeofenceFlutterError {
-  return NativeGeofenceFlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")}
+private fun createConnectionError(channelName: String): FlutterError {
+  return FlutterError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")}
 
 /**
  * Error class for passing custom error details to Flutter via a thrown PlatformException.
@@ -42,7 +43,7 @@ private fun createConnectionError(channelName: String): NativeGeofenceFlutterErr
  * @property message The error message.
  * @property details The error details. Must be a datatype supported by the api codec.
  */
-class NativeGeofenceFlutterError (
+class FlutterError (
   val code: String,
   override val message: String? = null,
   val details: Any? = null
@@ -588,7 +589,7 @@ class NativeGeofenceTriggerApi(private val binaryMessenger: BinaryMessenger, pri
     channel.send(listOf(paramsArg)) {
       if (it is List<*>) {
         if (it.size > 1) {
-          callback(Result.failure(NativeGeofenceFlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
         } else {
           callback(Result.success(Unit))
         }

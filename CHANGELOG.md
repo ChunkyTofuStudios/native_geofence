@@ -1,3 +1,7 @@
+## 1.0.5
+
+* Android: Specify Kotlin package when using Pigeon.
+
 ## 1.0.4
 
 * Android: Use custom error class name to avoid naming conflicts ("Type FlutterError is defined multiple times") at build time.

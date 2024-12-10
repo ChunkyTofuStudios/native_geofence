@@ -1,7 +1,5 @@
 package com.chunkytofustudios.native_geofence
 
-import GeofenceCallbackParamsWire
-import NativeGeofenceTriggerApi
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -10,6 +8,9 @@ import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.chunkytofustudios.native_geofence.api.NativeGeofenceBackgroundApiImpl
+import com.chunkytofustudios.native_geofence.generated.GeofenceCallbackParamsWire
+import com.chunkytofustudios.native_geofence.generated.NativeGeofenceBackgroundApi
+import com.chunkytofustudios.native_geofence.generated.NativeGeofenceTriggerApi
 import com.chunkytofustudios.native_geofence.model.GeofenceCallbackParamsStorage
 import com.google.common.util.concurrent.ListenableFuture
 import io.flutter.FlutterInjector

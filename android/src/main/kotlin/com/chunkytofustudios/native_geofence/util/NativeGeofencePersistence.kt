@@ -1,9 +1,9 @@
 package com.chunkytofustudios.native_geofence.util
 
-import GeofenceWire
 import android.content.Context
 import android.util.Log
 import com.chunkytofustudios.native_geofence.Constants
+import com.chunkytofustudios.native_geofence.generated.GeofenceWire
 import com.chunkytofustudios.native_geofence.model.GeofenceStorage
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString

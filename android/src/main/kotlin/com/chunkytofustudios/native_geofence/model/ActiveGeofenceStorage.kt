@@ -1,7 +1,7 @@
 package com.chunkytofustudios.native_geofence.model
 
-import ActiveGeofenceWire
-import GeofenceEvent
+import com.chunkytofustudios.native_geofence.generated.ActiveGeofenceWire
+import com.chunkytofustudios.native_geofence.generated.GeofenceEvent
 import kotlinx.serialization.Serializable
 
 @Serializable

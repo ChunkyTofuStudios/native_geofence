@@ -1,9 +1,9 @@
 package com.chunkytofustudios.native_geofence.util
 
-import ActiveGeofenceWire
-import AndroidGeofenceSettingsWire
-import GeofenceWire
-import LocationWire
+import com.chunkytofustudios.native_geofence.generated.ActiveGeofenceWire
+import com.chunkytofustudios.native_geofence.generated.AndroidGeofenceSettingsWire
+import com.chunkytofustudios.native_geofence.generated.GeofenceWire
+import com.chunkytofustudios.native_geofence.generated.LocationWire
 import com.google.android.gms.location.Geofence
 
 class ActiveGeofenceWires {

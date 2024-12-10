@@ -1,7 +1,7 @@
 package com.chunkytofustudios.native_geofence.util
 
-import LocationWire
 import android.location.Location
+import com.chunkytofustudios.native_geofence.generated.LocationWire
 
 class LocationWires {
     companion object {

@@ -1,6 +1,6 @@
 package com.chunkytofustudios.native_geofence.model
 
-import LocationWire
+import com.chunkytofustudios.native_geofence.generated.LocationWire
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -1,6 +1,5 @@
 package com.chunkytofustudios.native_geofence.receivers
 
-import GeofenceCallbackParamsWire
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,6 +11,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.chunkytofustudios.native_geofence.Constants
 import com.chunkytofustudios.native_geofence.NativeGeofenceBackgroundWorker
+import com.chunkytofustudios.native_geofence.generated.GeofenceCallbackParamsWire
 import com.chunkytofustudios.native_geofence.model.GeofenceCallbackParamsStorage
 import com.chunkytofustudios.native_geofence.util.ActiveGeofenceWires
 import com.chunkytofustudios.native_geofence.util.GeofenceEvents
@@ -19,7 +19,6 @@ import com.chunkytofustudios.native_geofence.util.LocationWires
 import com.google.android.gms.location.GeofencingEvent
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
 
 class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
     companion object {
