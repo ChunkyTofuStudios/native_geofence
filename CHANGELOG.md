@@ -1,3 +1,7 @@
+## 1.0.4
+
+* Android: Use custom error class name to avoid naming conflicts ("Type FlutterError is defined multiple times") at build time.
+
 ## 1.0.3
 
 * iOS: Removes `UIBackgroundModes.location` which was not required. Thanks @cbrauchli.

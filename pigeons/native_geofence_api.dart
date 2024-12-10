@@ -9,6 +9,7 @@ import 'package:pigeon/pigeon.dart';
   swiftOut: 'ios/Classes/Generated/FlutterBindings.g.swift',
   kotlinOut:
       'android/src/main/kotlin/com/chunkytofustudios/native_geofence/generated/FlutterBindings.g.kt',
+  kotlinOptions: KotlinOptions(errorClassName: 'NativeGeofenceFlutterError'),
 ))
 
 /// Geofencing events.

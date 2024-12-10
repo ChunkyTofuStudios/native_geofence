@@ -1,9 +1,9 @@
 package com.chunkytofustudios.native_geofence.api
 
 import ActiveGeofenceWire
-import FlutterError
 import GeofenceWire
 import NativeGeofenceApi
+import NativeGeofenceFlutterError
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -76,7 +76,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                 Log.e(TAG, "Failure when removing Geofence ID=$id: $it")
                 callback.invoke(
                     Result.failure(
-                        FlutterError(
+                        NativeGeofenceFlutterError(
                             errorCode.raw.toString(),
                             it.toString()
                         )
@@ -97,7 +97,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                 Log.e(TAG, "Failed to remove all geofences: $it")
                 callback.invoke(
                     Result.failure(
-                        FlutterError(
+                        NativeGeofenceFlutterError(
                             NativeGeofenceErrorCode.PLUGIN_INTERNAL.raw.toString(),
                             it.toString()
                         )
@@ -162,7 +162,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                     Log.e(TAG, "Lacking permission: ACCESS_FINE_LOCATION")
                     callback?.invoke(
                         Result.failure(
-                            FlutterError(
+                            NativeGeofenceFlutterError(
                                 NativeGeofenceErrorCode.MISSING_LOCATION_PERMISSION.raw.toString(),
                                 "The ACCESS_FINE_LOCATION needs to be granted in order to setup geofences."
                             )
@@ -181,7 +181,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                         Log.e(TAG, "Running on API ${Build.VERSION.SDK_INT} and lacking permission: ACCESS_BACKGROUND_LOCATION")
                         callback?.invoke(
                             Result.failure(
-                                FlutterError(
+                                NativeGeofenceFlutterError(
                                     NativeGeofenceErrorCode.MISSING_BACKGROUND_LOCATION_PERMISSION.raw.toString(),
                                     "The ACCESS_BACKGROUND_LOCATION needs to be granted in order to setup geofences.",
                                     "Running on Android API ${Build.VERSION.SDK_INT}."
@@ -194,7 +194,7 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
 
                 callback?.invoke(
                     Result.failure(
-                        FlutterError(
+                        NativeGeofenceFlutterError(
                             NativeGeofenceErrorCode.PLUGIN_INTERNAL.raw.toString(),
                             it.toString()
                         )
