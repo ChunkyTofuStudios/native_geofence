@@ -7,54 +7,74 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     
     private let binaryMessenger: FlutterBinaryMessenger
     
-    private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi? = nil
     private var eventQueue: [GeofenceCallbackParamsWire] = .init()
+    private var isClosed: Bool = false
+    private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi? = nil
+    private var cleanup: (() -> Void)? = nil
     
     init(binaryMessenger: FlutterBinaryMessenger) {
         self.binaryMessenger = binaryMessenger
     }
     
-    func triggerApiInitialized() throws {
+    func geofenceTriggered(params: GeofenceCallbackParamsWire, cleanup: @escaping () -> Void) {
         objc_sync_enter(self)
         
-        nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
-        log.debug("NativeGeofenceTriggerApi setup complete.")
+        eventQueue.append(params)
+        self.cleanup = cleanup
         
         objc_sync_exit(self)
         
+        guard let nativeGeoFenceTriggerApi else {
+            log.debug("Waiting for NativeGeofenceTriggerApi to become available...")
+            return
+        }
+        processQueue()
+    }
+    
+    func triggerApiInitialized() throws {
+        objc_sync_enter(self)
+        
+        if (nativeGeoFenceTriggerApi == nil) {
+            nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
+            log.debug("NativeGeofenceTriggerApi setup complete.")
+        }
+        
+        objc_sync_exit(self)
+        
+       if eventQueue.isEmpty {
+            log.debug("Waiting for geofence event...")
+            return
+        }
         processQueue()
     }
     
     func promoteToForeground() throws {
-        // Do nothing.
+        log.info("promoteToForeground called. iOS does not distinguish between foreground and background, nothing to do here.")
     }
     
     func demoteToBackground() throws {
-        // Do nothing.
-    }
-    
-    func geofenceTriggered(params: GeofenceCallbackParamsWire) {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
-        
-        if nativeGeoFenceTriggerApi != nil {
-            log.debug("NativeGeofenceTriggerApi is ready, sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] immediately.")
-            callGeofenceTriggerApi(params: params)
-        } else {
-            log.debug("NativeGeofenceTriggerApi is not ready, queuing geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
-            eventQueue.append(params)
-        }
+        log.info("demoteToBackground called. iOS does not distinguish between foreground and background, nothing to do here.")
     }
     
     private func processQueue() {
         objc_sync_enter(self)
         defer { objc_sync_exit(self) }
         
+        if isClosed {
+            log.error("NativeGeofenceBackgroundApi already closed, ignoring additional events.")
+            return
+        }
+        
         if !eventQueue.isEmpty {
             let params = eventQueue.removeFirst()
             log.debug("Queue dispatch: sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
             callGeofenceTriggerApi(params: params)
+            return
         }
+        
+        // Now that the event queue is empty we can cleanup and de-allocate this class.
+        cleanup?()
+        isClosed = true
     }
     
     private func callGeofenceTriggerApi(params: GeofenceCallbackParamsWire) {

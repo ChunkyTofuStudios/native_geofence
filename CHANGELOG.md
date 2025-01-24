@@ -1,3 +1,8 @@
+## 1.0.6
+
+* iOS: Improved background isolate spawning & cleanup routine.
+* iOS: Fixes rare bug that may cause the goefence to triggering twice.
+
 ## 1.0.5
 
 * Android: Specify Kotlin package when using Pigeon.

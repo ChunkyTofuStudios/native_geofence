@@ -30,7 +30,7 @@ class NativeGeofenceTriggerImpl implements NativeGeofenceTriggerApi {
     if (callback is! GeofenceCallback) {
       throw NativeGeofenceException(
           code: NativeGeofenceErrorCode.callbackInvalid,
-          message: 'Invalid callback type: ${callback.runtimeType}',
+          message: 'Invalid callback type: ${callback.runtimeType.toString()}',
           details: 'Expected: GeofenceCallback');
     }
     await callback(params.fromWire());
