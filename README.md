@@ -35,6 +35,8 @@ Follow the guide [here](https://docs.flutter.dev/release/breaking-changes/kotlin
 
 The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin). Note that as of Jan 2025 Flutter does not work well with Kotlin 2+.
 
+NOTE: You may also need Gradle 8+ to use this plugin. See this [issue](https://github.com/ChunkyTofuStudios/native_geofence/issues/4).
+
 2. Set your `minSdkVersion` to `26` or above.
 
 *Explanation: If you need to support prior Android builds it might be possible to accommodate this. Please send a PR or file a bug.*
