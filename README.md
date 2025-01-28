@@ -73,7 +73,11 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
  
 ### iOS
 
-1. In your `Info.plist` add the following key-value pairs:
+1. Migrate your app to Swift
+
+If your app is using Objective-C you will need to migrate to Swift. [Here is a guide](https://medium.com/@serge_shkurko/50-shades-of-pain-or-how-to-migrate-a-flutter-project-from-objective-c-to-swift-76ada31ab0e3) you can follow.
+
+2. In your `Info.plist` add the following key-value pairs:
 
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
@@ -84,7 +88,7 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
 
 *Explanation: The in-use location permission is required to create geofences. The always location permission is [required](https://dwirandyh.medium.com/deep-dive-into-core-location-in-ios-geofencing-region-monitoring-7846802c968e) if you want to be notified of geofence events when your app isn't running.*
 
-2. Update your AppDelegate to call `NativeGeofencePlugin`:
+3. Update your AppDelegate to call `NativeGeofencePlugin`:
 
 <details>
 <summary>Swift</summary>
