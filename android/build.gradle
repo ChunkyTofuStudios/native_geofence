@@ -72,10 +72,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'com.google.android.gms:play-services-maps:19.0.0'
     implementation 'com.google.guava:guava:33.4.0-android'
-    implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.work:work-runtime-ktx:2.9.1'
-    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
-    implementation 'androidx.concurrent:concurrent-futures-ktx:1.2.0'
+    implementation 'androidx.concurrent:concurrent-futures-ktx:1.1.0'
     //noinspection GradleDependency: 1.7+ requires Kotlin 2
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
 }

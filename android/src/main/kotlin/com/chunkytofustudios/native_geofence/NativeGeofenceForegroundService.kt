@@ -1,16 +1,11 @@
 package com.chunkytofustudios.native_geofence
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import com.chunkytofustudios.native_geofence.util.Notifications
 import kotlin.time.Duration.Companion.minutes
 
