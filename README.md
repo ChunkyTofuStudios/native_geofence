@@ -29,7 +29,19 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 
 ### Android
 
-1. In your `AndroidManifest.xml` add the following lines right before `</application>`:
+1. Upgrade to Kotlin `1.9.25` or later
+
+Follow the guide [here](https://docs.flutter.dev/release/breaking-changes/kotlin-version) to ensure your Kotlin version is at least `1.9.25`.
+
+The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin). Note that as of Jan 2025 Flutter does not work well with Kotlin 2+.
+
+2. Set your `minSdkVersion` to `26` or above.
+
+*Explanation: If you need to support prior Android builds it might be possible to accommodate this. Please send a PR or file a bug.*
+
+See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/blob/main/example/android/app/src/main/AndroidManifest.xml) for a full demonstration.
+
+3. In your `AndroidManifest.xml` add the following lines right before `</application>`:
 
 ```xml
 <!-- Used by plugin: native_geofence -->
@@ -47,7 +59,7 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 
 *Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback.*
 
-2. In the same file declare the neccesary permissions before the `<application ...` line:
+4. In the same file declare the neccesary permissions before the `<application ...` line:
 
 ```xml
 <!-- Used by plugin: native_geofence -->
@@ -59,12 +71,6 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 ```
 
 *Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock permission is only required if you need to run foreground services to respond to geofence events.*
-
-3. Set your `minSdkVersion` to `26` or above.
-
-*Explanation: If you need to support prior Android builds it might be possible to accommodate this. Please send a PR or file a bug.*
-
-See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/blob/main/example/android/app/src/main/AndroidManifest.xml) for a full demonstration.
 
 </details>
 
