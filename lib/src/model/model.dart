@@ -188,7 +188,11 @@ class GeofenceCallbackParams {
   final GeofenceEvent event;
 
   /// The location of the device when the geofence event was triggered.
-  /// Only set on Android and even then it might be null.
+  ///
+  /// Only set on Android and even then it might sometimes be null.
+  ///
+  /// Not set on iOS because the OS does not provide this information. See:
+  /// https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanager(_:diddeterminestate:for:)
   final Location? location;
 
   const GeofenceCallbackParams({
