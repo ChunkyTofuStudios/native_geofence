@@ -1,3 +1,7 @@
+## 1.0.8
+
+* Make plugin compatible with Flutter apps using Kotlin 2+.
+
 ## 1.0.7
 
 * Fixes a bug with Android 30 and older. [#9](https://github.com/ChunkyTofuStudios/native_geofence/issues/9)
