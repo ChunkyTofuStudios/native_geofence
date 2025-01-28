@@ -1,10 +1,17 @@
 package com.chunkytofustudios.native_geofence
 
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.concurrent.futures.CallbackToFutureAdapter
+import androidx.core.app.NotificationCompat
+import androidx.work.ForegroundInfo
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import com.chunkytofustudios.native_geofence.api.NativeGeofenceBackgroundApiImpl
@@ -12,6 +19,8 @@ import com.chunkytofustudios.native_geofence.generated.GeofenceCallbackParamsWir
 import com.chunkytofustudios.native_geofence.generated.NativeGeofenceBackgroundApi
 import com.chunkytofustudios.native_geofence.generated.NativeGeofenceTriggerApi
 import com.chunkytofustudios.native_geofence.model.GeofenceCallbackParamsStorage
+import com.chunkytofustudios.native_geofence.util.Notifications
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
@@ -26,6 +35,8 @@ class NativeGeofenceBackgroundWorker(
     ListenableWorker(context, workerParams) {
     companion object {
         const val TAG = "NativeGeofenceBackgroundWorker"
+        // TODO: Consider using random ID.
+        private const val NOTIFICATION_ID = 493620
         private val flutterLoader = FlutterInjector.instance().flutterLoader()
     }
 
@@ -42,6 +53,15 @@ class NativeGeofenceBackgroundWorker(
         }
 
     private var backgroundApiImpl: NativeGeofenceBackgroundApiImpl? = null
+
+    override fun getForegroundInfoAsync(): ListenableFuture<ForegroundInfo> {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // This method does not need to be implemented for Android 31 (S) and above.
+            return super.getForegroundInfoAsync()
+        }
+        val notification = Notifications.createBackgroundWorkerNotification(context)
+        return Futures.immediateFuture(ForegroundInfo(NOTIFICATION_ID, notification))
+    }
 
     override fun startWork(): ListenableFuture<Result> {
         startTime = System.currentTimeMillis()

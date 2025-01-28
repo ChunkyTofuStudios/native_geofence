@@ -1,6 +1,7 @@
 package com.chunkytofustudios.native_geofence
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -10,6 +11,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.chunkytofustudios.native_geofence.util.Notifications
 import kotlin.time.Duration.Companion.minutes
 
 // TODO: Allow customizing notification details.
@@ -30,27 +32,7 @@ class NativeGeofenceForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val channelId = "native_geofence_plugin_channel"
-        val channel = NotificationChannel(
-            channelId,
-            "Geofence Events",
-            // This has to be at least IMPORTANCE_LOW.
-            // Source: https://developer.android.com/develop/background-work/services/foreground-services#start
-            NotificationManager.IMPORTANCE_LOW
-        )
-
-        @SuppressLint("DiscouragedApi") // Can't use R syntax in Flutter plugin.
-        val imageId = resources.getIdentifier("ic_launcher", "mipmap", packageName)
-
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-            channel
-        )
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Processing geofence event.")
-            .setContentText("We noticed you are near a key location and are checking if we can help.")
-            .setSmallIcon(imageId)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+        val notification = Notifications.createForegroundServiceNotification(this)
 
         (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.ISOLATE_HOLDER_WAKE_LOCK_TAG).apply {
