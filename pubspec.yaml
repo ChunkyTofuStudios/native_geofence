@@ -1,6 +1,6 @@
 name: native_geofence
 description: Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
-version: 1.0.6
+version: 1.0.7
 homepage: https://chunkytofustudios.com
 repository: https://github.com/ChunkyTofuStudios/native_geofence
 

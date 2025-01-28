@@ -1,3 +1,8 @@
+## 1.0.7
+
+* Fixes a bug with Android 30 and older. [#9](https://github.com/ChunkyTofuStudios/native_geofence/issues/9)
+* Improve documentation.
+
 ## 1.0.6
 
 * iOS: Improved background isolate spawning & cleanup routine.
