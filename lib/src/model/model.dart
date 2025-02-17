@@ -29,6 +29,8 @@ class IosGeofenceSettings {
   /// added.
   /// For example, setting this to true will trigger an [GeofenceEvent.enter]
   /// event if the user is already inside the geofence.
+  /// Don't worry: This initial trigger only happens when the geofence is
+  /// created and NOT every time the plugin is initialized.
   final bool initialTrigger;
 
   const IosGeofenceSettings({
@@ -46,6 +48,8 @@ class AndroidGeofenceSettings {
   /// Sets the geofence behavior at the moment when the geofences are added.
   /// For example, listing [GeofenceEvent.enter] here will trigger the Geofence
   /// immediately if the user is already inside the geofence.
+  /// Don't worry: This initial trigger only happens when the geofence is
+  /// created and NOT every time the plugin is initialized.
   final Set<GeofenceEvent> initialTriggers;
 
   /// The geofence will be removed automatically after this period of time.
