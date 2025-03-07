@@ -1,3 +1,7 @@
+## 1.0.9
+
+* Minor visibility fix: Make `NativeGeofenceException` visible to library users.
+
 ## 1.0.8
 
 * Make plugin compatible with Flutter apps using Kotlin 2+.
