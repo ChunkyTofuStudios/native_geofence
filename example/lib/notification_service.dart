@@ -55,25 +55,4 @@ class NotificationService {
       iOS: DarwinNotificationDetails(),
     );
   }
-
-
-  // Show Notification
-  Future<void> showNotification({
-    int id = 0,
-    String? title,
-    String? body
-  }) async {
-    notificationPlugin.show(
-      id,
-      title,
-      body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'your channel id $randomId',
-          '$title',
-          channelDescription: '$body',
-        ),
-      ),
-    );
-  }
 }
