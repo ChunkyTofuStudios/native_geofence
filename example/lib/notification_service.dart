@@ -26,9 +26,7 @@ class NotificationService {
 
     // prepare iOS initialization
     const initSettingsIOs = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+        defaultPresentBanner: false
     );
 
     // init settings
@@ -72,8 +70,8 @@ class NotificationService {
       NotificationDetails(
         android: AndroidNotificationDetails(
           'your channel id $randomId',
-          'your channel name',
-          channelDescription: 'your channel description',
+          '$title',
+          channelDescription: '$body',
         ),
       ),
     );
