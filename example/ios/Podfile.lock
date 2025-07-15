@@ -25,7 +25,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_local_notifications: df98d66e515e1ca797af436137b4459b160ad8c9
+  flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
   native_geofence: 79dbe31eef8e1b6fd798c035b239a355027f20ae
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
 

@@ -1,3 +1,7 @@
+## 1.1.0
+
+* Upgrade dependencies
+
 ## 1.0.9
 
 * Minor visibility fix: Make `NativeGeofenceException` visible to library users.
