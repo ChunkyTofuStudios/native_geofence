@@ -84,7 +84,7 @@ class CreateGeofenceState extends State<CreateGeofence> {
               SizedBox(height: 22),
               ElevatedButton(
                 onPressed: () async {
-                  if (await _checkPermissions()) {
+                  if (!(await _checkPermissions())) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Lacking permissions!')),

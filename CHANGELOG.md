@@ -1,6 +1,10 @@
 ## 1.1.0
 
-* Upgrade dependencies
+* Upgrade pub.dev dependencies
+* Upgrade Android Gradle dependencies
+* Downgrade Android minSdkVersion to 23 (thanks [AzarouAmine](https://github.com/AzarouAmine)!)
+* Allow calling GeofenceManager methods in geofence callbacks (thanks [Mako-L](https://github.com/Mako-L)!)
+* Example App: refactor notification logic into a NotificationsRepository (thanks [fadelfffar](https://github.com/fadelfffar)!)
 
 ## 1.0.9
 
