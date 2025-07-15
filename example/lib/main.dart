@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:native_geofence/native_geofence.dart';
 import 'package:native_geofence_example/create_geofence.dart';
 
-import 'notification_service.dart';
+import 'notifications_repository.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,8 +23,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // init Geofence notification
-    NotificationService().initNotification();
+    unawaited(NotificationsRepository().init());
     IsolateNameServer.registerPortWithName(
       port.sendPort,
       'native_geofence_send_port',
