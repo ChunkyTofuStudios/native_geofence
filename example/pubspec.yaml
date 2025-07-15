@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  permission_handler: ^11.4.0
-  flutter_local_notifications: ^19.0.0
+  permission_handler: ^12.0.1
+  flutter_local_notifications: ^19.3.0
 
 dev_dependencies:
   flutter_test:
