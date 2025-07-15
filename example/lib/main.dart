@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:native_geofence/native_geofence.dart';
 import 'package:native_geofence_example/create_geofence.dart';
 
+import 'notifications_repository.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
@@ -21,6 +23,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    unawaited(NotificationsRepository().init());
     IsolateNameServer.registerPortWithName(
       port.sendPort,
       'native_geofence_send_port',
