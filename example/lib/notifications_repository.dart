@@ -23,16 +23,17 @@ class NotificationsRepository {
         android: initSettingsAndroid,
         iOS: initSettingsIOs,
       ));
-      if (success != true) {
-        debugPrint('Failed to initialize notifications plugin.');
+      if (success == true) {
+        _isInitialized = true;
+        debugPrint('Notifications plugin initialized.');
+        return;
       }
+      debugPrint('Failed to initialize notifications plugin.');
     } catch (e, s) {
       debugPrint(
           'Error while initializing notifications plugin: ${e.toString()}');
       debugPrintStack(stackTrace: s);
     }
-
-    _isInitialized = true;
   }
 
   Future<void> showGeofenceTriggerNotification(
