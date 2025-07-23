@@ -4,48 +4,49 @@ import OSLog
 
 class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofenceBackgroundApiImpl")
-    
     private let binaryMessenger: FlutterBinaryMessenger
-    
-    private var eventQueue: [GeofenceCallbackParamsWire] = .init()
-    private var isClosed: Bool = false
-    private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi? = nil
-    private var cleanup: (() -> Void)? = nil
+    private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi?
+    private var cleanup: (() -> Void)?
+    private var geofenceId: String?
+    // A timeout work item to ensure cleanup happens even if the Dart side never responds.
+    private var timeoutWorkItem: DispatchWorkItem?
+
+    /// Timeout (in seconds) after which the callback is force-cleaned up if no response is
+    /// received from the Dart isolate. Adjust if needed.
+    private static let callbackTimeout: TimeInterval = 10
     
     init(binaryMessenger: FlutterBinaryMessenger) {
         self.binaryMessenger = binaryMessenger
     }
     
     func geofenceTriggered(params: GeofenceCallbackParamsWire, cleanup: @escaping () -> Void) {
-        objc_sync_enter(self)
-        
-        eventQueue.append(params)
         self.cleanup = cleanup
+        let geofenceId = params.geofences.first?.id ?? ""
+        self.geofenceId = geofenceId
         
-        objc_sync_exit(self)
+        GeofenceCallbackHandlerManager.shared.startTracking(handler: self, forGeofenceId: geofenceId)
         
-        guard let nativeGeoFenceTriggerApi else {
-            log.debug("Waiting for NativeGeofenceTriggerApi to become available...")
-            return
+        if nativeGeoFenceTriggerApi == nil {
+            nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
         }
-        processQueue()
+
+        // Schedule a fallback cleanup in case the Dart side never replies.
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.log.error("Geofence trigger for ID=[\(self.geofenceId ?? "")] timed out after \(Self.callbackTimeout)s. Forcing cleanup.")
+            self.cleanup?()
+            if let geofenceId = self.geofenceId {
+                GeofenceCallbackHandlerManager.shared.stopTracking(forGeofenceId: geofenceId)
+            }
+        }
+        self.timeoutWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.callbackTimeout, execute: workItem)
+
+        callGeofenceTriggerApi(params: params)
     }
     
     func triggerApiInitialized() throws {
-        objc_sync_enter(self)
-        
-        if (nativeGeoFenceTriggerApi == nil) {
-            nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
-            log.debug("NativeGeofenceTriggerApi setup complete.")
-        }
-        
-        objc_sync_exit(self)
-        
-       if eventQueue.isEmpty {
-            log.debug("Waiting for geofence event...")
-            return
-        }
-        processQueue()
+        // This is not used on iOS and can be a no-op.
     }
     
     func promoteToForeground() throws {
@@ -55,47 +56,52 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     func demoteToBackground() throws {
         log.info("demoteToBackground called. iOS does not distinguish between foreground and background, nothing to do here.")
     }
-    
-    private func processQueue() {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
-        
-        if isClosed {
-            log.error("NativeGeofenceBackgroundApi already closed, ignoring additional events.")
-            return
-        }
-        
-        if !eventQueue.isEmpty {
-            let params = eventQueue.removeFirst()
-            log.debug("Queue dispatch: sending geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))].")
-            callGeofenceTriggerApi(params: params)
-            return
-        }
-        
-        // Now that the event queue is empty we can cleanup and de-allocate this class.
-        cleanup?()
-        isClosed = true
-    }
-    
+
     private func callGeofenceTriggerApi(params: GeofenceCallbackParamsWire) {
         guard let api = nativeGeoFenceTriggerApi else {
             log.error("NativeGeofenceTriggerApi was nil, this should not happen.")
             return
         }
-        log.debug("Calling Dart callback to process geofence trigger for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] event=\(String(describing: params.event)).")
-        api.geofenceTriggered(params: params, completion: { result in
+        
+        log.debug("Calling Dart callback to process geofence trigger for IDs=[\(params.geofences.first?.id ?? "")] event=\(String(describing: params.event)).")
+        
+        api.geofenceTriggered(params: params) { [weak self] result in
+            guard let self = self else { return }
+
+            // Cancel timeout since we received a response.
+            self.timeoutWorkItem?.cancel()
+            self.timeoutWorkItem = nil
+            
             if case .success = result {
-                self.log.debug("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] processed successfully.")
+                self.log.debug("Geofence trigger event for ID=[\(self.geofenceId ?? "")] processed successfully.")
             } else {
-                self.log.error("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] failed.")
+                self.log.error("Geofence trigger event for ID=[\(self.geofenceId ?? "")] failed.")
             }
-            // Now that the callback is complete we can process the next item in the queue, if any.
-            self.processQueue()
-        })
+            
+            self.cleanup?()
+            
+            if let geofenceId = self.geofenceId {
+                GeofenceCallbackHandlerManager.shared.stopTracking(forGeofenceId: geofenceId)
+            }
+        }
     }
-    
-    private static func geofenceIds(_ params: GeofenceCallbackParamsWire) -> String {
-        let ids: [String] = params.geofences.map(\.id)
-        return ids.joined(separator: ",")
+}
+
+/// Tracks active background handlers so we can manage their lifecycle safely.
+final class GeofenceCallbackHandlerManager {
+    static let shared = GeofenceCallbackHandlerManager()
+    private let lock = NSLock()
+    private var handlers: [String: NativeGeofenceBackgroundApiImpl] = [:]
+
+    private init() {}
+
+    func startTracking(handler: NativeGeofenceBackgroundApiImpl, forGeofenceId id: String) {
+        lock.lock(); defer { lock.unlock() }
+        handlers[id] = handler
+    }
+
+    func stopTracking(forGeofenceId id: String) {
+        lock.lock(); defer { lock.unlock() }
+        handlers.removeValue(forKey: id)
     }
 }
