@@ -7,20 +7,25 @@ import 'package:flutter/material.dart';
 import 'package:native_geofence/native_geofence.dart';
 import 'package:native_geofence_example/create_geofence.dart';
 
+import 'notifications_repository.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   String geofenceState = 'N/A';
   ReceivePort port = ReceivePort();
 
   @override
   void initState() {
     super.initState();
+    unawaited(NotificationsRepository().init());
     IsolateNameServer.registerPortWithName(
       port.sendPort,
       'native_geofence_send_port',

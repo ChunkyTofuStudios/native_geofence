@@ -1,12 +1,10 @@
 import 'dart:isolate';
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:native_geofence/native_geofence.dart';
+import 'package:native_geofence_example/notifications_repository.dart';
 
 @pragma('vm:entry-point')
 Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
@@ -15,45 +13,23 @@ Future<void> geofenceTriggered(GeofenceCallbackParams params) async {
       IsolateNameServer.lookupPortByName('native_geofence_send_port');
   send?.send(params.event.name);
 
-  try {
-    final plugin = FlutterLocalNotificationsPlugin();
-    if (!(await plugin.initialize(InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-          iOS: DarwinInitializationSettings(defaultPresentBanner: false),
-        )) ??
-        false)) {
-      debugPrint('Failed to initialize notifications plugin.');
-      return;
-    }
-    final message = 'Geofences:\n'
-        '${params.geofences.map((e) => '• ID: ${e.id}, '
-            'Radius=${e.radiusMeters.toStringAsFixed(0)}m, '
-            'Triggers=${e.triggers.map((e) => e.name).join(',')}').join('\n')}\n'
-        'Event: ${params.event.name}\n'
-        'Location: ${params.location?.latitude.toStringAsFixed(5)}, '
-        '${params.location?.longitude.toStringAsFixed(5)}';
-    await plugin.show(
-      Random().nextInt(100000),
-      'Geofence ${capitalize(params.event.name)}: ${params.geofences.map((e) => e.id).join(', ')}',
-      message,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'geofence_triggers',
-          'Geofence Triggers',
-          styleInformation: BigTextStyleInformation(message),
-        ),
-        iOS: DarwinNotificationDetails(
-            interruptionLevel: InterruptionLevel.active),
-      ),
-      payload: 'item x',
-    );
-    debugPrint('Notification sent.');
-  } catch (e, s) {
-    debugPrint('Failed to send notification: $e');
-    debugPrintStack(stackTrace: s);
-  }
+  final notificationsRepository = NotificationsRepository();
+  // TODO: Test to see what happens if we do not initialize the Notifications
+  // plugin during callbacks.
+  await notificationsRepository.init();
 
-  await Future.delayed(Duration(seconds: 1));
+  final title =
+      'Geofence ${capitalize(params.event.name)}: ${params.geofences.map((e) => e.id).join(', ')}';
+  final message = 'Geofences:\n'
+      '${params.geofences.map((e) => '• ID: ${e.id}, '
+          'Radius=${e.radiusMeters.toStringAsFixed(0)}m, '
+          'Triggers=${e.triggers.map((e) => e.name).join(',')}').join('\n')}\n'
+      'Event: ${params.event.name}\n'
+      'Location: ${params.location?.latitude.toStringAsFixed(5)}, '
+      '${params.location?.longitude.toStringAsFixed(5)}';
+  await notificationsRepository.showGeofenceTriggerNotification(title, message);
+
+  await Future.delayed(const Duration(seconds: 1));
 }
 
 String capitalize(String text) {

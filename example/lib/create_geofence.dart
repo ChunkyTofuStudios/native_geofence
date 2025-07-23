@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-
-import 'package:permission_handler/permission_handler.dart';
-
 import 'package:native_geofence/native_geofence.dart';
 import 'package:native_geofence_example/callback.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CreateGeofence extends StatefulWidget {
+  const CreateGeofence({super.key});
+
   @override
-  _CreateGeofenceState createState() => _CreateGeofenceState();
+  CreateGeofenceState createState() => CreateGeofenceState();
 }
 
-class _CreateGeofenceState extends State<CreateGeofence> {
+class CreateGeofenceState extends State<CreateGeofence> {
   static const Location _timesSquare =
       Location(latitude: 40.75798, longitude: -73.98554);
 
@@ -84,7 +84,8 @@ class _CreateGeofenceState extends State<CreateGeofence> {
               SizedBox(height: 22),
               ElevatedButton(
                 onPressed: () async {
-                  if (!await _checkPermissions()) {
+                  if (!(await _checkPermissions())) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Lacking permissions!')),
                     );
@@ -176,7 +177,7 @@ extension ModifyAndroidGeofenceSettings on AndroidGeofenceSettings {
     Duration Function()? notificationResponsiveness,
   }) {
     return AndroidGeofenceSettings(
-      initialTriggers: initialTrigger?.call() ?? this.initialTriggers,
+      initialTriggers: initialTrigger?.call() ?? initialTriggers,
       expiration: expiration?.call() ?? this.expiration,
       loiteringDelay: loiteringDelay?.call() ?? this.loiteringDelay,
       notificationResponsiveness:
