@@ -8,18 +8,13 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi?
     private var cleanup: (() -> Void)?
     private var geofenceId: String?
-    // A timeout work item to ensure cleanup happens even if the Dart side never responds.
-    private var timeoutWorkItem: DispatchWorkItem?
-
-    /// Timeout (in seconds) after which the callback is force-cleaned up if no response is
-    /// received from the Dart isolate. Adjust if needed.
-    private static let callbackTimeout: TimeInterval = 10
     
     init(binaryMessenger: FlutterBinaryMessenger) {
         self.binaryMessenger = binaryMessenger
     }
     
     func geofenceTriggered(params: GeofenceCallbackParamsWire, cleanup: @escaping () -> Void) {
+        objc_sync_enter(self)
         self.cleanup = cleanup
         let geofenceId = params.geofences.first?.id ?? ""
         self.geofenceId = geofenceId
@@ -29,20 +24,10 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         if nativeGeoFenceTriggerApi == nil {
             nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
         }
+        callGeofenceTriggerApi(params: params)  
+        objc_sync_exit(self) 
 
-        // Schedule a fallback cleanup in case the Dart side never replies.
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-            self.log.error("Geofence trigger for ID=[\(self.geofenceId ?? "")] timed out after \(Self.callbackTimeout)s. Forcing cleanup.")
-            self.cleanup?()
-            if let geofenceId = self.geofenceId {
-                GeofenceCallbackHandlerManager.shared.stopTracking(forGeofenceId: geofenceId)
-            }
-        }
-        self.timeoutWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.callbackTimeout, execute: workItem)
 
-        callGeofenceTriggerApi(params: params)
     }
     
     func triggerApiInitialized() throws {
@@ -67,10 +52,6 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         
         api.geofenceTriggered(params: params) { [weak self] result in
             guard let self = self else { return }
-
-            // Cancel timeout since we received a response.
-            self.timeoutWorkItem?.cancel()
-            self.timeoutWorkItem = nil
             
             if case .success = result {
                 self.log.debug("Geofence trigger event for ID=[\(self.geofenceId ?? "")] processed successfully.")

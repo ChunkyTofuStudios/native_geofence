@@ -8,8 +8,16 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     
     private let locationManagerDelegate: LocationManagerDelegate
     
-    init(registerPlugins: FlutterPluginRegistrantCallback) {
-        self.locationManagerDelegate = LocationManagerDelegate(flutterPluginRegistrantCallback: registerPlugins)
+    init(registerPlugins: FlutterPluginRegistrantCallback? = nil, runningInBackground: Bool = false, locationManagerDelegate: LocationManagerDelegate? = nil) {
+        if runningInBackground {
+            precondition(locationManagerDelegate != nil, "LocationManagerDelegate must be provided when runningInBackground is true.")
+            self.locationManagerDelegate = locationManagerDelegate!
+        } else {
+            guard let registerPlugins else {
+                fatalError("registerPlugins must be provided when runningInBackground is false.")
+            }
+            self.locationManagerDelegate = LocationManagerDelegate(flutterPluginRegistrantCallback: registerPlugins)
+        }
     }
     
     func initialize(callbackDispatcherHandle: Int64) throws {
