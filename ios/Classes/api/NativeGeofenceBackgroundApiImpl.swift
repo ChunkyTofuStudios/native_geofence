@@ -8,9 +8,17 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
     private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi?
     private var cleanup: (() -> Void)?
     private var geofenceId: String?
+    private var onProcessingComplete: (() -> Void)?
+    private var onRetry: ((GeofenceCallbackParamsWire) -> Void)?
+    private let watchdogQueue = DispatchQueue(label: "\(Constants.PACKAGE_NAME).watchdog")
+    private var watchdogTimer: DispatchSourceTimer?
+    private var lastParams: GeofenceCallbackParamsWire?
+    private var retryCount: Int = 0
     
-    init(binaryMessenger: FlutterBinaryMessenger) {
+    init(binaryMessenger: FlutterBinaryMessenger, onProcessingComplete: (() -> Void)? = nil, onRetry: ((GeofenceCallbackParamsWire) -> Void)? = nil) {
         self.binaryMessenger = binaryMessenger
+        self.onProcessingComplete = onProcessingComplete
+        self.onRetry = onRetry
     }
     
     func geofenceTriggered(params: GeofenceCallbackParamsWire, cleanup: @escaping () -> Void) {
@@ -18,13 +26,16 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         self.cleanup = cleanup
         let geofenceId = params.geofences.first?.id ?? ""
         self.geofenceId = geofenceId
+        self.lastParams = params
+        self.retryCount = 0
         
         GeofenceCallbackHandlerManager.shared.startTracking(handler: self, forGeofenceId: geofenceId)
         
         if nativeGeoFenceTriggerApi == nil {
             nativeGeoFenceTriggerApi = NativeGeofenceTriggerApi(binaryMessenger: binaryMessenger)
         }
-        callGeofenceTriggerApi(params: params)  
+        callGeofenceTriggerApi(params: params)
+        scheduleWatchdog(seconds: 10.0)
         objc_sync_exit(self) 
 
 
@@ -58,13 +69,57 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
             } else {
                 self.log.error("Geofence trigger event for ID=[\(self.geofenceId ?? "")] failed.")
             }
-            
-            self.cleanup?()
-            
-            if let geofenceId = self.geofenceId {
-                GeofenceCallbackHandlerManager.shared.stopTracking(forGeofenceId: geofenceId)
+            // Do not cleanup here; Dart signals completion explicitly via processingComplete().
+        }
+    }
+
+    func processingComplete() throws {
+        log.debug("processingComplete received from Dart.")
+        cancelWatchdog()
+        // Perform cleanup and release queue slot.
+        cleanup?()
+        if let geofenceId = geofenceId {
+            GeofenceCallbackHandlerManager.shared.stopTracking(forGeofenceId: geofenceId)
+        }
+        onProcessingComplete?()
+        // Reset to avoid accidental double-calls.
+        cleanup = nil
+        geofenceId = nil
+        onProcessingComplete = nil
+        lastParams = nil
+        retryCount = 0
+    }
+
+    private func scheduleWatchdog(seconds: TimeInterval) {
+        cancelWatchdog()
+        let timer = DispatchSource.makeTimerSource(queue: watchdogQueue)
+        timer.schedule(deadline: .now() + seconds, repeating: seconds)
+        timer.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            let paramsToRetry = self.lastParams
+            DispatchQueue.main.async {
+                if let paramsToRetry {
+                    self.retryCount += 1
+                    self.log.error("Watchdog fired (attempt \(self.retryCount)). Restarting engine and rerunning trigger for ID=[\(self.geofenceId ?? "")].")
+                    // Stop repeating further for this instance; the new instance will own its own watchdog.
+                    self.cancelWatchdog()
+                    // Destroy the current engine context before retrying.
+                    self.cleanup?()
+                    // Ask delegate to recreate engine and retry from the beginning.
+                    self.onRetry?(paramsToRetry)
+                    // Ensure this instance doesn't perform further actions.
+                    self.cleanup = nil
+                }
             }
         }
+        watchdogTimer = timer
+        timer.resume()
+    }
+
+    private func cancelWatchdog() {
+        watchdogTimer?.setEventHandler {}
+        watchdogTimer?.cancel()
+        watchdogTimer = nil
     }
 }
 

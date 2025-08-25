@@ -41,6 +41,12 @@ class NativeGeofenceBackgroundManager {
   Future<void> demoteToBackground() async => _api
       .demoteToBackground()
       .catchError(NativeGeofenceExceptionMapper.catchError<void>);
+
+  /// Signal that processing of the current geofence event is complete.
+  /// iOS only
+  Future<void> processingComplete() async => _api
+      .processingComplete()
+      .catchError(NativeGeofenceExceptionMapper.catchError<void>);
 }
 
 /// Private method internal to plugin, do not use.

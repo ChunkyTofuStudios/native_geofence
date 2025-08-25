@@ -46,26 +46,67 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         }
         
         let params = GeofenceCallbackParamsWire(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
-        
-        guard let (backgroundApi, engine) = createFlutterEngine() else {
-            return
+
+        // Enqueue processing to ensure serialized execution with 500ms spacing.
+        GeofenceEventQueue.shared.enqueue { [weak self] done in
+            guard let self = self else { return }
+            guard let (backgroundApi, engine) = self.createFlutterEngine(onProcessingComplete: {
+                // Signal the queue to continue after iOS receives processingComplete from Dart.
+                done()
+            }, onRetry: { [weak self] retryParams in
+                guard let self = self else { return }
+                guard let (retryApi, retryEngine) = self.createFlutterEngine(onProcessingComplete: {
+                    done()
+                }, onRetry: { params in
+                    // Chain retries if needed; this will continue recreating engines every watchdog cycle.
+                    GeofenceEventQueue.shared.enqueue { [weak self] innerDone in
+                        guard let self = self else { return }
+                        guard let (api2, engine2) = self.createFlutterEngine(onProcessingComplete: {
+                            innerDone()
+                        }, onRetry: nil) else {
+                            innerDone()
+                            return
+                        }
+                        func cleanup2() {
+                            engine2.destroyContext()
+                            self.log.debug("Flutter engine cleanup complete (chained retry).")
+                        }
+                        api2.geofenceTriggered(params: params, cleanup: cleanup2)
+                        self.log.debug("Geofence trigger CHAINED RETRY sent.")
+                    }
+                }) else {
+                    // If engine creation fails, still release the queue slot.
+                    done()
+                    return
+                }
+                func retryCleanup() {
+                    retryEngine.destroyContext()
+                    self.log.debug("Flutter engine cleanup complete (retry).")
+                }
+                retryApi.geofenceTriggered(params: retryParams, cleanup: retryCleanup)
+                self.log.debug("Geofence trigger RETRY sent.")
+            }) else {
+                // If engine creation fails, still release the queue slot.
+                done()
+                return
+            }
+
+            // Let the background API handle its own lifecycle
+            func cleanup() {
+                engine.destroyContext()
+                self.log.debug("Flutter engine cleanup complete.")
+            }
+
+            backgroundApi.geofenceTriggered(params: params, cleanup: cleanup)
+            self.log.debug("Geofence trigger event enqueued and sent.")
         }
-        
-        // Let the background API handle its own lifecycle
-        func cleanup() {
-            engine.destroyContext()
-            log.debug("Flutter engine cleanup complete.")
-        }
-        
-        backgroundApi.geofenceTriggered(params: params, cleanup: cleanup)
-        log.debug("Geofence trigger event sent.")
     }
     
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
         log.error("monitoringDidFailFor: \(region?.identifier ?? "nil") withError: \(error)")
     }
     
-    private func createFlutterEngine() -> (NativeGeofenceBackgroundApiImpl, FlutterEngine)? {
+    private func createFlutterEngine(onProcessingComplete: (() -> Void)? = nil, onRetry: ((GeofenceCallbackParamsWire) -> Void)? = nil) -> (NativeGeofenceBackgroundApiImpl, FlutterEngine)? {
         // Create a Flutter engine with unique name to avoid conflicts
         let engineName = "\(Constants.HEADLESS_FLUTTER_ENGINE_NAME)_\(Date().timeIntervalSince1970)_\(Int.random(in: 1000...9999))"
         let headlessFlutterEngine = FlutterEngine(name: engineName, project: nil, allowHeadlessExecution: true)
@@ -90,7 +131,7 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         flutterPluginRegistrantCallback?(headlessFlutterEngine)
         log.debug("Flutter engine started and plugins registered.")
         
-        let nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessFlutterEngine.binaryMessenger)
+        let nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessFlutterEngine.binaryMessenger, onProcessingComplete: onProcessingComplete, onRetry: onRetry)
         NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessFlutterEngine.binaryMessenger, api: nativeGeofenceBackgroundApi)
         log.debug("NativeGeofenceBackgroundApi initialized.")
 
