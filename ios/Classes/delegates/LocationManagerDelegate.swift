@@ -42,6 +42,10 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             log.error("Unknown CLRegion type: \(String(describing: type(of: region)))")
             return
         }
+
+        if !activeGeofence.triggers.contains(event) {
+            return
+        }
         
         guard let callbackHandle = NativeGeofencePersistence.getRegionCallbackHandle(id: activeGeofence.id) else {
             log.error("Callback handle for region \(activeGeofence.id) not found.")
