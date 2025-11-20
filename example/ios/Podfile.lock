@@ -25,9 +25,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
-  native_geofence: 79dbe31eef8e1b6fd798c035b239a355027f20ae
-  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
+  native_geofence: b6b6b2bca9bbf8181e646aab0e41a012089ee905
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
 
 PODFILE CHECKSUM: ad2fb2aca9d5ff2ea71f690a2526bbfac1436064
 

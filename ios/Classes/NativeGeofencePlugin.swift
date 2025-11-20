@@ -11,7 +11,7 @@ public class NativeGeofencePlugin: NSObject, FlutterPlugin {
     private var nativeGeofenceApi: NativeGeofenceApiImpl? = nil
     
     init(registrar: FlutterPluginRegistrar, registerPlugins: FlutterPluginRegistrantCallback) {
-        nativeGeofenceApi = NativeGeofenceApiImpl(registerPlugins: registerPlugins)
+        nativeGeofenceApi = NativeGeofenceApiImpl(registerPlugins: registerPlugins, runningInBackground: false, locationManagerDelegate: nil)
         NativeGeofenceApiSetup.setUp(binaryMessenger: registrar.messenger(), api: nativeGeofenceApi)
         NativeGeofencePlugin.log.debug("NativeGeofenceApi initialized.")
     }

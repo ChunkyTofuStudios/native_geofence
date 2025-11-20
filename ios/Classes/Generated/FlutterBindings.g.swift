@@ -606,6 +606,9 @@ protocol NativeGeofenceBackgroundApi {
   func triggerApiInitialized() throws
   func promoteToForeground() throws
   func demoteToBackground() throws
+  /// Signal that geofence processing is complete.
+  /// iOS only
+  func processingComplete() throws
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -652,6 +655,21 @@ class NativeGeofenceBackgroundApiSetup {
       }
     } else {
       demoteToBackgroundChannel.setMessageHandler(nil)
+    }
+    /// Signal that geofence processing is complete.
+    /// iOS only
+    let processingCompleteChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.native_geofence.NativeGeofenceBackgroundApi.processingComplete\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      processingCompleteChannel.setMessageHandler { _, reply in
+        do {
+          try api.processingComplete()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      processingCompleteChannel.setMessageHandler(nil)
     }
   }
 }
