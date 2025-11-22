@@ -11,7 +11,7 @@ class NativeGeofenceTriggerImpl implements NativeGeofenceTriggerApi {
   /// Cached instance of [NativeGeofenceTriggerImpl]
   static NativeGeofenceTriggerImpl? _instance;
 
-  static ensureInitialized() {
+  static void ensureInitialized() {
     _instance ??= NativeGeofenceTriggerImpl._();
   }
 

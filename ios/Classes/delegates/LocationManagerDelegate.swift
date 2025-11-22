@@ -102,11 +102,6 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessFlutterEngine!.binaryMessenger, api: nativeGeofenceBackgroundApi)
         log.debug("NativeGeofenceBackgroundApi initialized.")
 
-        // Also register the main NativeGeofenceApi in background context
-        let nativeGeofenceMainApi = NativeGeofenceApiImpl(registerPlugins: flutterPluginRegistrantCallback!)
-        NativeGeofenceApiSetup.setUp(binaryMessenger: headlessFlutterEngine!.binaryMessenger, api: nativeGeofenceMainApi)
-        log.debug("NativeGeofenceMainApi also initialized in background context.")
-
         return nativeGeofenceBackgroundApi
     }
 }

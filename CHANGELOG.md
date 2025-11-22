@@ -1,3 +1,10 @@
+## 1.2.0
+
+* iOS: Fixes regression: geofences callbacks not being executed after their first trigger
+  * Reverts 1.1.0 change which had enabled calling GeofenceManager methods in geofence callbacks
+* iOS: Do not call Dart callback for unrequested geofence triggers: [#37](https://github.com/ChunkyTofuStudios/native_geofence/pull/37) by [slaci](https://github.com/slaci)
+* Upgrade dependencies
+
 ## 1.1.0
 
 * Upgrade pub.dev dependencies

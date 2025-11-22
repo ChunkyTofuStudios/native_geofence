@@ -12,7 +12,7 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   permission_handler: ^12.0.1
-  flutter_local_notifications: ^19.3.0
+  flutter_local_notifications: ^19.5.0
 
   native_geofence:
     path: ../
@@ -20,7 +20,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
