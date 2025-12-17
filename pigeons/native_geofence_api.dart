@@ -34,9 +34,11 @@ class LocationWire {
 
 class IosGeofenceSettingsWire {
   final bool initialTrigger;
+  final bool ignoreIfAlreadyInside;
 
   const IosGeofenceSettingsWire({
     required this.initialTrigger,
+    this.ignoreIfAlreadyInside = false,
   });
 }
 

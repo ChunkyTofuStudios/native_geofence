@@ -26,6 +26,11 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         region.notifyOnExit = geofence.triggers.contains(.exit)
         
         NativeGeofencePersistence.setRegionCallbackHandle(id: geofence.id, handle: geofence.callbackHandle)
+        NativeGeofencePersistence.setRegionInitialTriggerEnabled(id: geofence.id, enabled: geofence.iosSettings.initialTrigger)
+        NativeGeofencePersistence.setRegionAwaitingInitialState(id: geofence.id, enabled: true)
+        NativeGeofencePersistence.setRegionIgnoreIfAlreadyInside(id: geofence.id, enabled: geofence.iosSettings.ignoreIfAlreadyInside)
+        let nowMillis = Int64(Date().timeIntervalSince1970 * 1000.0)
+        NativeGeofencePersistence.setRegionActivationTimestamp(id: geofence.id, timestampMillis: nowMillis)
         
         locationManagerDelegate.locationManager.startMonitoring(for: region)
         if geofence.iosSettings.initialTrigger {
@@ -69,6 +74,10 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
             if region.identifier == id {
                 locationManagerDelegate.locationManager.stopMonitoring(for: region)
                 NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+                NativeGeofencePersistence.removeRegionInitialTriggerEnabled(id: region.identifier)
+                NativeGeofencePersistence.removeRegionActivationTimestamp(id: region.identifier)
+                NativeGeofencePersistence.removeRegionAwaitingInitialState(id: region.identifier)
+                NativeGeofencePersistence.removeRegionIgnoreIfAlreadyInside(id: region.identifier)
                 removedCount += 1
             }
         }
@@ -81,6 +90,10 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         for region in locationManagerDelegate.locationManager.monitoredRegions {
             locationManagerDelegate.locationManager.stopMonitoring(for: region)
             NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+            NativeGeofencePersistence.removeRegionInitialTriggerEnabled(id: region.identifier)
+            NativeGeofencePersistence.removeRegionActivationTimestamp(id: region.identifier)
+            NativeGeofencePersistence.removeRegionAwaitingInitialState(id: region.identifier)
+            NativeGeofencePersistence.removeRegionIgnoreIfAlreadyInside(id: region.identifier)
             removedCount += 1
         }
         log.debug("Removed \(removedCount) geofence(s).")
