@@ -43,6 +43,17 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             return
         }
 
+        let awaitingInitial = NativeGeofencePersistence.getRegionAwaitingInitialState(id: activeGeofence.id) ?? false
+        let ignoreIfAlreadyInside = NativeGeofencePersistence.getRegionIgnoreIfAlreadyInside(id: activeGeofence.id) ?? false
+        
+        if awaitingInitial {
+            if ignoreIfAlreadyInside && event == .enter {
+                NativeGeofencePersistence.setRegionAwaitingInitialState(id: activeGeofence.id, enabled: false)
+                return
+            }
+            NativeGeofencePersistence.setRegionAwaitingInitialState(id: activeGeofence.id, enabled: false)
+        }
+        
         if !activeGeofence.triggers.contains(event) {
             return
         }
