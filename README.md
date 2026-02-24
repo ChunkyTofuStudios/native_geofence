@@ -74,6 +74,12 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
 
 *Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock permission is only required if you need to run foreground services to respond to geofence events.*
 
+5. Optional: Disable battery optimization
+
+If you want to perform any heavy work when a Geofence triggers (within the Geofence callback), such as calling a backend API, you will need to ask the user to disable battery optimization for your app.
+
+You can do so by using the [disable_battery_optimization package](https://pub.dev/packages/disable_battery_optimization). You can find a code sample [here](https://gist.github.com/orkun1675/5803f43f897b22365651bdf9561ca4f4).
+
 </details>
 
 <details>
