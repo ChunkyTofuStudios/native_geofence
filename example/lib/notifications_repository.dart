@@ -19,7 +19,8 @@ class NotificationsRepository {
         DarwinInitializationSettings(defaultPresentBanner: false);
 
     try {
-      final success = await _plugin.initialize(InitializationSettings(
+      final success = await _plugin.initialize(
+          settings: InitializationSettings(
         android: initSettingsAndroid,
         iOS: initSettingsIOs,
       ));
@@ -45,10 +46,10 @@ class NotificationsRepository {
 
     try {
       await _plugin.show(
-        Random().nextInt(100000),
-        title,
-        message,
-        NotificationDetails(
+        id: Random().nextInt(100000),
+        title: title,
+        body: message,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             'geofence_triggers',
             'Geofence Triggers',
