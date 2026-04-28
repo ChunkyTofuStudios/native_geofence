@@ -1,4 +1,4 @@
-## 1.2.1
+## 1.2.2
 
 * Upgrade dependencies
 * Update README to clarify Android minSDKVersion
