@@ -1,6 +1,11 @@
 ## 1.2.1
 
 * Upgrade dependencies
+* Update README to clarify Android minSDKVersion
+
+## 1.2.1
+
+* Upgrade dependencies
 * Add new optional step to Android setup instructions
 
 ## 1.2.0
