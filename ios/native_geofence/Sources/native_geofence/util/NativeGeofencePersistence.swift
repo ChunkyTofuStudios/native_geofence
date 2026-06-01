@@ -1,3 +1,5 @@
+import Foundation
+
 class NativeGeofencePersistence {
     private static let persistentState: UserDefaults = .standard
     
