@@ -29,11 +29,14 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 
 ### Android
 
-1. Upgrade to Kotlin `1.9.25` or later
+1. Kotlin setup
 
-Follow the guide [here](https://docs.flutter.dev/release/breaking-changes/kotlin-version) to ensure your Kotlin version is at least `1.9.25`.
+This plugin works with both Android Kotlin setups, so follow the one that matches your toolchain:
 
-The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin). Note that as of Jan 2025 Flutter does not work well with Kotlin 2+.
+- **Flutter 3.44+ (AGP 9) — built-in Kotlin:** Kotlin is provided by the Android Gradle Plugin, so there is nothing to add. Do **not** apply the `kotlin-android` Gradle plugin yourself — AGP 9 rejects an explicitly applied Kotlin plugin. See Flutter's [built-in Kotlin migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin).
+- **Older Flutter (AGP 8):** apply the Kotlin Gradle plugin as usual, and ensure your Kotlin version is at least `1.9.25` (see this [guide](https://docs.flutter.dev/release/breaking-changes/kotlin-version)). The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin).
+
+The [example app](https://github.com/ChunkyTofuStudios/native_geofence/tree/main/example/android) demonstrates the AGP 8 setup, with comments in its Gradle files noting the AGP 9 difference.
 
 NOTE: You may also need Gradle 8+ to use this plugin. See this [issue](https://github.com/ChunkyTofuStudios/native_geofence/issues/4).
 

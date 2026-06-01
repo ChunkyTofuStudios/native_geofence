@@ -20,6 +20,8 @@ pluginManagement {
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
     id "com.android.application" version "8.6.1" apply false
+    // Targets AGP 8 for broad compatibility. On Flutter 3.44+ / AGP 9, Kotlin is
+    // built in and this Kotlin Gradle plugin declaration isn't needed.
     id "org.jetbrains.kotlin.android" version "2.2.0" apply false
 }
 
