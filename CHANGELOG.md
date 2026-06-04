@@ -1,3 +1,8 @@
+## 1.3.0
+
+* Adds Swift Package Manager support (by [doug-shontz](https://github.com/doug-shontz))
+* Adds AGP 9 support for Flutter 3.44+ (by [doug-shontz](https://github.com/doug-shontz))
+
 ## 1.2.2
 
 * Upgrade dependencies
