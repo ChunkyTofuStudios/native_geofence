@@ -24,21 +24,26 @@ allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+
+// AGP 9 enables built-in Kotlin and rejects an explicitly applied Kotlin Gradle
+// plugin. On older AGP (Flutter < 3.44) we still have to apply it ourselves, so
+// only apply `kotlin-android` when built-in Kotlin isn't available. This keeps
+// the plugin building on both pre- and post-3.44 Flutter.
+// https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+def agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
+if (agpMajorVersion < 9) {
+    apply plugin: 'kotlin-android'
+}
 apply plugin: 'kotlinx-serialization'
 
 android {
     namespace 'com.chunkytofustudios.native_geofence'
 
-    compileSdk 34
+    compileSdk 35
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     sourceSets {
@@ -65,6 +70,14 @@ android {
                showStandardStreams = true
             }
         }
+    }
+}
+
+// Works under both built-in Kotlin (AGP 9) and the explicitly applied
+// kotlin-android plugin (older AGP); replaces the legacy `kotlinOptions` block.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
