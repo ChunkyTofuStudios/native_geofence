@@ -32,10 +32,15 @@ apply plugin: 'com.android.library'
 // by default while other plugins migrate. Checking the AGP version alone is not
 // enough; we must also honor the flag, or the `kotlin {}` block below has no
 // Kotlin extension to configure.
+//
+// Built-in Kotlin is active on AGP 9+ unless explicitly disabled. We compare
+// against the literal "false" (null-safe, trimmed, case-insensitive) rather than
+// parsing a boolean, so an unexpected value can never throw — it simply leaves
+// built-in Kotlin treated as active, which is AGP 9's own default.
 // https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
 def agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
-def builtInKotlinFlag = project.findProperty('android.builtInKotlin')
-def builtInKotlinActive = agpMajorVersion >= 9 && (builtInKotlinFlag == null || builtInKotlinFlag.toString().toBoolean())
+def builtInKotlinFlag = project.findProperty('android.builtInKotlin')?.toString()?.trim()?.toLowerCase()
+def builtInKotlinActive = agpMajorVersion >= 9 && builtInKotlinFlag != 'false'
 if (!builtInKotlinActive) {
     apply plugin: 'kotlin-android'
 }
