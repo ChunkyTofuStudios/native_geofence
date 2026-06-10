@@ -26,12 +26,22 @@ allprojects {
 apply plugin: 'com.android.library'
 
 // AGP 9 enables built-in Kotlin and rejects an explicitly applied Kotlin Gradle
-// plugin. On older AGP (Flutter < 3.44) we still have to apply it ourselves, so
-// only apply `kotlin-android` when built-in Kotlin isn't available. This keeps
-// the plugin building on both pre- and post-3.44 Flutter.
+// plugin, so we must apply `kotlin-android` ourselves only when built-in Kotlin
+// is NOT active. That is the case on older AGP (Flutter < 3.44), but also on
+// AGP 9 when `android.builtInKotlin` is disabled — which Flutter's template does
+// by default while other plugins migrate. Checking the AGP version alone is not
+// enough; we must also honor the flag, or the `kotlin {}` block below has no
+// Kotlin extension to configure.
+//
+// Built-in Kotlin is active on AGP 9+ unless explicitly disabled. We compare
+// against the literal "false" (null-safe, trimmed, case-insensitive) rather than
+// parsing a boolean, so an unexpected value can never throw — it simply leaves
+// built-in Kotlin treated as active, which is AGP 9's own default.
 // https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
 def agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
-if (agpMajorVersion < 9) {
+def builtInKotlinFlag = project.findProperty('android.builtInKotlin')?.toString()?.trim()?.toLowerCase()
+def builtInKotlinActive = agpMajorVersion >= 9 && builtInKotlinFlag != 'false'
+if (!builtInKotlinActive) {
     apply plugin: 'kotlin-android'
 }
 apply plugin: 'kotlinx-serialization'
