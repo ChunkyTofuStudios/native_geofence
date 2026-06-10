@@ -1,3 +1,7 @@
+## 1.3.1
+
+* Improves AGP 9 support (by [doug-shontz](https://github.com/doug-shontz))
+
 ## 1.3.0
 
 * Adds Swift Package Manager support (by [doug-shontz](https://github.com/doug-shontz))
