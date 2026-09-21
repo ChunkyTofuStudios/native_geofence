@@ -6,29 +6,29 @@ import OSLog
 class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     // Prevent multiple instances of CLLocationManager to avoid duplicate triggers.
     private static var sharedLocationManager: CLLocationManager?
-    
+
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "LocationManagerDelegate")
-    
+
     private let flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback?
     let locationManager: CLLocationManager
-    
+
     private var headlessFlutterEngine: FlutterEngine? = nil
     private var nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl? = nil
-    
+
     init(flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback?) {
         self.flutterPluginRegistrantCallback = flutterPluginRegistrantCallback
         locationManager = LocationManagerDelegate.sharedLocationManager ?? CLLocationManager()
         LocationManagerDelegate.sharedLocationManager = locationManager
-        
+
         super.init()
         locationManager.delegate = self
-        
+
         log.debug("LocationManagerDelegate created with instance ID=\(Int.random(in: 1 ... 1000000)).")
     }
-    
+
     func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
         log.debug("didDetermineState: \(String(describing: state)) for geofence ID: \(region.identifier)")
-        
+
         guard let event: GeofenceEvent = switch state {
         case .unknown: nil
         case .inside: .enter
@@ -37,7 +37,27 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             log.error("Unknown CLRegionState: \(String(describing: state))")
             return
         }
-        
+
+        handleGeofenceEvent(region: region, event: event)
+    }
+
+    // Real-time boundary crossing callbacks — fired by iOS when the device
+    // crosses the geofence boundary regardless of app state (active, background,
+    // or terminated). These are the primary delivery path for geofence events.
+    // didDetermineState alone only fires when requestState() is called explicitly
+    // (e.g. on app open via initialTrigger), so without these two methods real
+    // background crossings are silently dropped.
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        log.debug("didEnterRegion: \(region.identifier)")
+        handleGeofenceEvent(region: region, event: .enter)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+        log.debug("didExitRegion: \(region.identifier)")
+        handleGeofenceEvent(region: region, event: .exit)
+    }
+
+    private func handleGeofenceEvent(region: CLRegion, event: GeofenceEvent) {
         guard let activeGeofence = ActiveGeofenceWires.fromRegion(region) else {
             log.error("Unknown CLRegion type: \(String(describing: type(of: region)))")
             return
@@ -46,18 +66,18 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         if !activeGeofence.triggers.contains(event) {
             return
         }
-        
+
         guard let callbackHandle = NativeGeofencePersistence.getRegionCallbackHandle(id: activeGeofence.id) else {
             log.error("Callback handle for region \(activeGeofence.id) not found.")
             return
         }
-        
+
         let params = GeofenceCallbackParamsWire(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
-        
+
         guard let backgroundApi = nativeGeofenceBackgroundApi ?? createFlutterEngine() else {
             return
         }
-        
+
         // Shutdown the engine once the Geofence event is handled
         func cleanup() {
             nativeGeofenceBackgroundApi = nil
@@ -65,30 +85,30 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             headlessFlutterEngine = nil
             log.debug("Flutter engine cleanup complete.")
         }
-        
+
         nativeGeofenceBackgroundApi!.geofenceTriggered(params: params, cleanup: cleanup)
         log.debug("Geofence trigger event sent.")
     }
-    
+
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
         log.error("monitoringDidFailFor: \(region?.identifier ?? "nil") withError: \(error)")
     }
-    
+
     private func createFlutterEngine() -> NativeGeofenceBackgroundApiImpl? {
         // Create a Flutter engine
         headlessFlutterEngine = FlutterEngine(name: Constants.HEADLESS_FLUTTER_ENGINE_NAME, project: nil, allowHeadlessExecution: true)
         log.debug("A new headless Flutter engine has been created.")
-        
+
         guard let callbackDispatcherHandle = NativeGeofencePersistence.getCallbackDispatcherHandle() else {
             log.error("Callback dispatcher not found in UserDefaults.")
             return nil
         }
-        
+
         guard let callbackDispatcherInfo = FlutterCallbackCache.lookupCallbackInformation(callbackDispatcherHandle) else {
             log.error("Callback dispatcher not found.")
             return nil
         }
-        
+
         // Start the engine at the specified callback method.
         headlessFlutterEngine!.run(withEntrypoint: callbackDispatcherInfo.callbackName, libraryURI: callbackDispatcherInfo.callbackLibraryPath)
         // Once our headless runner has been started, we need to register the application's plugins
@@ -97,7 +117,7 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         // This callback should register all relevant plugins (excluding those which require UI).
         flutterPluginRegistrantCallback?(headlessFlutterEngine!)
         log.debug("Flutter engine started and plugins registered.")
-        
+
         nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessFlutterEngine!.binaryMessenger)
         NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessFlutterEngine!.binaryMessenger, api: nativeGeofenceBackgroundApi)
         log.debug("NativeGeofenceBackgroundApi initialized.")

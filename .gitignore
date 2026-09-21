@@ -11,3 +11,4 @@ build/
 
 # FVM Version Cache
 .fvm/
+ios/native_geofence
