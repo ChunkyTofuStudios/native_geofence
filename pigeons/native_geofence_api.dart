@@ -6,7 +6,9 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/generated/platform_bindings.g.dart',
   dartPackageName: 'native_geofence',
-  swiftOut: 'ios/Classes/Generated/FlutterBindings.g.swift',
+  // Must match the podspec source_files glob. See: a714099 (SPM migration).
+  swiftOut:
+      'ios/native_geofence/Sources/native_geofence/Generated/FlutterBindings.g.swift',
   kotlinOut:
       'android/src/main/kotlin/com/chunkytofustudios/native_geofence/generated/FlutterBindings.g.kt',
   kotlinOptions:
@@ -96,12 +98,16 @@ class GeofenceCallbackParamsWire {
   final GeofenceEvent event;
   final LocationWire? location;
   final int callbackHandle;
+  // Milliseconds since epoch. A primitive is used because Pigeon does not
+  // support DateTime.
+  final int? triggerTimestampMillis;
 
   const GeofenceCallbackParamsWire({
     required this.geofences,
     required this.event,
     required this.location,
     required this.callbackHandle,
+    required this.triggerTimestampMillis,
   });
 }
 

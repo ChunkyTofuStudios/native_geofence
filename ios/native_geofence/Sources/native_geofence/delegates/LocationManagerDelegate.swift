@@ -52,7 +52,8 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             return
         }
         
-        let params = GeofenceCallbackParamsWire(geofences: [activeGeofence], event: event, callbackHandle: callbackHandle)
+        // iOS does not provide the location or time of the geofence trigger.
+        let params = GeofenceCallbackParamsWire(geofences: [activeGeofence], event: event, location: nil, callbackHandle: callbackHandle, triggerTimestampMillis: nil)
         
         guard let backgroundApi = nativeGeofenceBackgroundApi ?? createFlutterEngine() else {
             return
