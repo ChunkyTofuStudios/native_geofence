@@ -112,7 +112,7 @@ extension GeofenceCallbackParamsWireMapper on GeofenceCallbackParamsWire {
       geofences: geofences.map((e) => e.fromWire()).toList(),
       event: event,
       location: location?.fromWire(),
-      triggerAt: triggerTimestampMillis != null
+      triggeredAt: triggerTimestampMillis != null
           ? DateTime.fromMillisecondsSinceEpoch(triggerTimestampMillis!)
           : null,
     );

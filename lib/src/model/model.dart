@@ -209,13 +209,13 @@ class GeofenceCallbackParams {
   ///
   /// Not set on iOS because the OS does not provide this information. See:
   /// https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanager(_:diddeterminestate:for:)
-  final DateTime? triggerAt;
+  final DateTime? triggeredAt;
 
   const GeofenceCallbackParams({
     required this.geofences,
     required this.event,
     required this.location,
-    required this.triggerAt,
+    required this.triggeredAt,
   });
 
   @override
@@ -224,6 +224,6 @@ class GeofenceCallbackParams {
         'geofences: [${geofences.map((e) => e.toString()).join(', ')}], '
         'event: ${event.name}, '
         'location: $location, '
-        'triggerAt: $triggerAt)';
+        'triggeredAt: $triggeredAt)';
   }
 }
