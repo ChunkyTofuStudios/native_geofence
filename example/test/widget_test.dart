@@ -1,28 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:native_geofence_example/main.dart';
 
 void main() {
-  testWidgets('Verify Platform version', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that platform version is retrieved.
-    expect(
-      find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Text && widget.data!.startsWith('Running on:'),
-      ),
-      findsOneWidget,
+  setUp(() {
+    // Fake the native side of the plugin calls made on startup. The
+    // notifications plugin isn't available in widget tests either; the app
+    // logs that error and carries on.
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const codec = StandardMessageCodec();
+    const api = 'dev.flutter.pigeon.native_geofence.NativeGeofenceApi';
+    messenger.setMockMessageHandler(
+      '$api.initialize',
+      (_) async => codec.encodeMessage(<Object?>[null]),
     );
+    messenger.setMockMessageHandler(
+      '$api.getGeofenceIds',
+      (_) async => codec.encodeMessage(<Object?>[<String>[]]),
+    );
+  });
+
+  testWidgets('Renders the geofence form', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Native Geofence'), findsOneWidget);
+    expect(find.text('Current state: N/A'), findsOneWidget);
+    expect(find.text('Active Geofences: []'), findsOneWidget);
+    expect(find.text('Register'), findsOneWidget);
+    expect(find.text('Unregister'), findsOneWidget);
   });
 }
