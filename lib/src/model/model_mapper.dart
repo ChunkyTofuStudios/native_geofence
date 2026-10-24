@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:native_geofence/src/generated/platform_bindings.g.dart';
 import 'package:native_geofence/src/model/model.dart';
 import 'package:native_geofence/src/model/native_geofence_exception.dart';
-import 'package:native_geofence/src/platform/module.dart';
 
 extension LocationMapper on Location {
   LocationWire toWire() {
@@ -19,19 +18,13 @@ extension LocationWireMapper on LocationWire {
 
 extension IosGeofenceSettingsMapper on IosGeofenceSettings {
   IosGeofenceSettingsWire toWire() {
-    return IosGeofenceSettingsWire(
-      initialTrigger: initialTrigger,
-      ignoreIfAlreadyInside: isIos ? ignoreIfAlreadyInside : false,
-    );
+    return IosGeofenceSettingsWire(initialTrigger: initialTrigger);
   }
 }
 
 extension IosGeofenceSettingsWireMapper on IosGeofenceSettingsWire {
   IosGeofenceSettings fromWire() {
-    return IosGeofenceSettings(
-      initialTrigger: initialTrigger,
-      ignoreIfAlreadyInside: ignoreIfAlreadyInside,
-    );
+    return IosGeofenceSettings(initialTrigger: initialTrigger);
   }
 }
 

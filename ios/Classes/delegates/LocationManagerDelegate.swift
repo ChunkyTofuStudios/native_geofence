@@ -43,17 +43,14 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             return
         }
 
-        let awaitingInitial = NativeGeofencePersistence.getRegionAwaitingInitialState(id: activeGeofence.id) ?? false
-        let ignoreIfAlreadyInside = NativeGeofencePersistence.getRegionIgnoreIfAlreadyInside(id: activeGeofence.id) ?? false
-        
-        if awaitingInitial {
-            if ignoreIfAlreadyInside && event == .enter {
-                NativeGeofencePersistence.setRegionAwaitingInitialState(id: activeGeofence.id, enabled: false)
-                return
-            }
-            NativeGeofencePersistence.setRegionAwaitingInitialState(id: activeGeofence.id, enabled: false)
+        // Ignore the initial state iOS reports when monitoring starts. This must happen before the
+        // triggers check, otherwise an initial state that isn't a trigger wouldn't clear the flag.
+        if NativeGeofencePersistence.isRegionAwaitingInitialState(id: activeGeofence.id) {
+            NativeGeofencePersistence.removeRegionAwaitingInitialState(id: activeGeofence.id)
+            log.debug("Ignoring initial state for geofence ID=\(activeGeofence.id) since initialTrigger is disabled.")
+            return
         }
-        
+
         if !activeGeofence.triggers.contains(event) {
             return
         }

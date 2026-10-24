@@ -31,38 +31,25 @@ class IosGeofenceSettings {
   /// event if the user is already inside the geofence.
   /// Don't worry: This initial trigger only happens when the geofence is
   /// created and NOT every time the plugin is initialized.
+  ///
+  /// iOS reports the state of a geofence as soon as it starts monitoring it,
+  /// even if that state wasn't requested. When this is false, the plugin
+  /// ignores this initial state, so no [GeofenceEvent.enter] or
+  /// [GeofenceEvent.exit] event is triggered until the user crosses the
+  /// geofence boundary.
+  ///
+  /// On Android this is configured via
+  /// [AndroidGeofenceSettings.initialTriggers] instead, which is handled
+  /// directly by the Android geofencing API.
   final bool initialTrigger;
-
-  /// Whether a geofence event should be triggered immediately when the geofence
-  /// is added **and the device is already inside the geofence**.
-  ///
-  /// When set to `false`, the plugin will ignore the initial geofence state
-  /// evaluation if the device is already inside the region. In this case,
-  /// an [GeofenceEvent.enter] event will only be triggered after the device
-  /// first exits the geofence and then re-enters it.
-  ///
-  /// When set to `true`, an [GeofenceEvent.enter] event may be triggered
-  /// immediately if the device is already inside the geofence at the time it
-  /// is added.
-  ///
-  /// Note:
-  /// - This behavior is platform-specific.
-  /// - On iOS, the system evaluates the current geofence state immediately
-  ///   when monitoring begins.
-  /// - The initial evaluation happens only once per geofence and is not
-  ///   repeated when the plugin is re-initialized.
-
-  final bool ignoreIfAlreadyInside;
 
   const IosGeofenceSettings({
     this.initialTrigger = false,
-    this.ignoreIfAlreadyInside = false,
   });
 
   @override
   String toString() {
-    return 'IosGeofenceSettings(initialTrigger: $initialTrigger, '
-        'ignoreIfAlreadyInside: $ignoreIfAlreadyInside)';
+    return 'IosGeofenceSettings(initialTrigger: $initialTrigger)';
   }
 }
 
