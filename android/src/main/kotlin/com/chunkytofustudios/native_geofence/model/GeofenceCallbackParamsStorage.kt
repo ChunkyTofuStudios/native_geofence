@@ -9,7 +9,9 @@ class GeofenceCallbackParamsStorage(
     private val geofences: List<ActiveGeofenceStorage>,
     private val event: GeofenceEvent,
     private val location: LocationStorage? = null,
-    private val callbackHandle: Long
+    private val callbackHandle: Long,
+    // Defaults to null so worker payloads enqueued by older plugin versions can still be decoded.
+    private val triggerTimestampMillis: Long? = null,
 ) {
     companion object {
         fun fromWire(e: GeofenceCallbackParamsWire): GeofenceCallbackParamsStorage {
@@ -18,6 +20,7 @@ class GeofenceCallbackParamsStorage(
                 e.event,
                 e.location?.let { LocationStorage.fromWire(it) },
                 e.callbackHandle,
+                e.triggerTimestampMillis,
             )
         }
     }
@@ -28,6 +31,7 @@ class GeofenceCallbackParamsStorage(
             event,
             location?.toWire(),
             callbackHandle,
+            triggerTimestampMillis,
         )
     }
 }
