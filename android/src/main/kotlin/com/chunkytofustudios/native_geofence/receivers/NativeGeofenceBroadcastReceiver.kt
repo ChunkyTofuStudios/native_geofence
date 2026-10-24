@@ -94,7 +94,7 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
             geofenceEvent,
             location?.let { LocationWires.fromLocation(it) },
             callbackHandle,
-            geofencingEvent.triggeringLocation?.time
+            location?.time
         )
     }
 }

@@ -8,7 +8,7 @@ class LocationWires {
         fun fromLocation(e: Location): LocationWire {
             return LocationWire(
                 e.latitude,
-                e.longitude,
+                e.longitude
             )
         }
     }

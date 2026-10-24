@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 class LocationStorage(
     private val latitude: Double,
-    private val longitude: Double,
+    private val longitude: Double
 ) {
     companion object {
         fun fromWire(e: LocationWire): LocationStorage {

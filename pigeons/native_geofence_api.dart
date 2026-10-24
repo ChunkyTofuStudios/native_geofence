@@ -31,10 +31,7 @@ class LocationWire {
   final double latitude;
   final double longitude;
 
-  const LocationWire({
-    required this.latitude,
-    required this.longitude,
-  });
+  const LocationWire({required this.latitude, required this.longitude});
 }
 
 class IosGeofenceSettingsWire {
@@ -101,6 +98,8 @@ class GeofenceCallbackParamsWire {
   final GeofenceEvent event;
   final LocationWire? location;
   final int callbackHandle;
+  // Milliseconds since epoch. A primitive is used because Pigeon does not
+  // support DateTime.
   final int? triggerTimestampMillis;
 
   const GeofenceCallbackParamsWire({

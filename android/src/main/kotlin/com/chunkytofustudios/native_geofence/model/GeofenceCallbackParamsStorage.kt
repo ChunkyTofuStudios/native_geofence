@@ -10,6 +10,7 @@ class GeofenceCallbackParamsStorage(
     private val event: GeofenceEvent,
     private val location: LocationStorage? = null,
     private val callbackHandle: Long,
+    // Defaults to null so worker payloads enqueued by older plugin versions can still be decoded.
     private val triggerTimestampMillis: Long? = null,
 ) {
     companion object {

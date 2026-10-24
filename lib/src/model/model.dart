@@ -7,17 +7,8 @@ import 'package:native_geofence/src/generated/platform_bindings.g.dart';
 class Location {
   final double latitude;
   final double longitude;
-  final int? timestampMillis;
 
-  const Location({
-    required this.latitude,
-    required this.longitude,
-    this.timestampMillis,
-  });
-
-  DateTime? get dateTime => timestampMillis != null
-      ? DateTime.fromMillisecondsSinceEpoch(timestampMillis!)
-      : null;
+  const Location({required this.latitude, required this.longitude});
 
   /// Whether this location instance is valid.
   bool get isValid =>
@@ -208,24 +199,24 @@ class GeofenceCallbackParams {
   /// https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanager(_:diddeterminestate:for:)
   final Location? location;
 
-  /// The timestamp of when the geofence event was triggered, in milliseconds
-  /// since epoch.
+  /// The time when the geofence event was triggered.
   ///
-  /// Only available on Android. Always null on iOS because the OS does not
-  /// provide trigger timing information. See:
+  /// This can be earlier than when the callback runs since the OS may delay
+  /// delivering geofence events.
+  ///
+  /// Only set on Android, and only when [location] is set: this is the time at
+  /// which that location was determined.
+  ///
+  /// Not set on iOS because the OS does not provide this information. See:
   /// https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanager(_:diddeterminestate:for:)
-  final int? triggerTimestampMillis;
+  final DateTime? triggerAt;
 
   const GeofenceCallbackParams({
     required this.geofences,
     required this.event,
     required this.location,
-    required this.triggerTimestampMillis,
+    required this.triggerAt,
   });
-
-  DateTime? get triggeredAt => triggerTimestampMillis != null
-      ? DateTime.fromMillisecondsSinceEpoch(triggerTimestampMillis!)
-      : null;
 
   @override
   String toString() {
@@ -233,6 +224,6 @@ class GeofenceCallbackParams {
         'geofences: [${geofences.map((e) => e.toString()).join(', ')}], '
         'event: ${event.name}, '
         'location: $location, '
-        'triggeredAt: $triggeredAt)';
+        'triggerAt: $triggerAt)';
   }
 }
