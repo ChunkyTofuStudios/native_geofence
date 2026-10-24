@@ -1,3 +1,9 @@
+## 1.4.0
+
+* Adds `GeofenceCallbackParams.triggeredAt`: the time the geofence event was triggered, which can be earlier than when the callback runs (by [SardorbekAbdulabbozov](https://github.com/SardorbekAbdulabbozov)) [#56](https://github.com/ChunkyTofuStudios/native_geofence/pull/56)
+  * Only set on Android, as iOS does not provide this information
+* iOS: Respects `IosGeofenceSettings.initialTrigger = false`: no event is triggered when the geofence is created while already inside it (by [Zataxo](https://github.com/Zataxo)) [#39](https://github.com/ChunkyTofuStudios/native_geofence/pull/39)
+
 ## 1.3.1
 
 * Improves AGP 9 support (by [doug-shontz](https://github.com/doug-shontz))
