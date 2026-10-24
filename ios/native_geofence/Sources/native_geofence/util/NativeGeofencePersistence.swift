@@ -45,25 +45,25 @@ class NativeGeofencePersistence {
         persistentState.set(mapping, forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
     }
     
-    static func addRegionAwaitingInitialState(id: String) {
-        var ids = getRegionsAwaitingInitialState()
-        guard !ids.contains(id) else { return }
-        ids.append(id)
-        persistentState.set(ids, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_LIST_KEY)
+    static func setRegionAwaitingInitialState(id: String) {
+        var mapping = getRegionAwaitingInitialStateMapping()
+        mapping[id] = NSNumber(value: Date().timeIntervalSince1970)
+        persistentState.set(mapping, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY)
     }
     
-    static func isRegionAwaitingInitialState(id: String) -> Bool {
-        return getRegionsAwaitingInitialState().contains(id)
+    /// Returns since when the geofence has been awaiting its initial state, or nil if it isn't.
+    static func getRegionAwaitingInitialStateSince(id: String) -> Date? {
+        guard let timestamp = getRegionAwaitingInitialStateMapping()[id] as? NSNumber else { return nil }
+        return Date(timeIntervalSince1970: timestamp.doubleValue)
     }
     
     static func removeRegionAwaitingInitialState(id: String) {
-        var ids = getRegionsAwaitingInitialState()
-        guard let index = ids.firstIndex(of: id) else { return }
-        ids.remove(at: index)
-        persistentState.set(ids, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_LIST_KEY)
+        var mapping = getRegionAwaitingInitialStateMapping()
+        guard mapping.removeValue(forKey: id) != nil else { return }
+        persistentState.set(mapping, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY)
     }
     
-    private static func getRegionsAwaitingInitialState() -> [String] {
-        return persistentState.stringArray(forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_LIST_KEY) ?? []
+    private static func getRegionAwaitingInitialStateMapping() -> [String: Any] {
+        return persistentState.dictionary(forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY) ?? [:]
     }
 }

@@ -7,6 +7,10 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     // Prevent multiple instances of CLLocationManager to avoid duplicate triggers.
     private static var sharedLocationManager: CLLocationManager?
     
+    // Only a geofence's first state reported within this time after its creation is treated as its
+    // initial state. A later first state is a boundary crossing (e.g. the initial state never came).
+    private static let initialStateTimeout: TimeInterval = 30
+    
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "LocationManagerDelegate")
     
     private let flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback?
@@ -45,10 +49,14 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
 
         // Ignore the initial state iOS reports when monitoring starts. This must happen before the
         // triggers check, otherwise an initial state that isn't a trigger wouldn't clear the flag.
-        if NativeGeofencePersistence.isRegionAwaitingInitialState(id: activeGeofence.id) {
+        if let awaitingSince = NativeGeofencePersistence.getRegionAwaitingInitialStateSince(id: activeGeofence.id) {
             NativeGeofencePersistence.removeRegionAwaitingInitialState(id: activeGeofence.id)
-            log.debug("Ignoring initial state for geofence ID=\(activeGeofence.id) since initialTrigger is disabled.")
-            return
+            let elapsed = Date().timeIntervalSince(awaitingSince)
+            if (0..<LocationManagerDelegate.initialStateTimeout).contains(elapsed) {
+                log.debug("Ignoring initial state for geofence ID=\(activeGeofence.id) since initialTrigger is disabled.")
+                return
+            }
+            log.debug("First state for geofence ID=\(activeGeofence.id) came after \(Int(elapsed))s, handling it as a boundary crossing.")
         }
 
         if !activeGeofence.triggers.contains(event) {

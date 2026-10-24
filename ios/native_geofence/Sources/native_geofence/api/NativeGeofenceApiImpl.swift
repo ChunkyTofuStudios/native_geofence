@@ -31,7 +31,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         } else {
             // iOS reports the state of a region as soon as monitoring starts, even if it was not
             // requested. Mark the geofence so that LocationManagerDelegate ignores this initial state.
-            NativeGeofencePersistence.addRegionAwaitingInitialState(id: geofence.id)
+            NativeGeofencePersistence.setRegionAwaitingInitialState(id: geofence.id)
         }
         
         locationManagerDelegate.locationManager.startMonitoring(for: region)

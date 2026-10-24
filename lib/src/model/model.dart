@@ -34,9 +34,9 @@ class IosGeofenceSettings {
   ///
   /// iOS reports the state of a geofence as soon as it starts monitoring it,
   /// even if that state wasn't requested. When this is false, the plugin
-  /// ignores this initial state, so no [GeofenceEvent.enter] or
-  /// [GeofenceEvent.exit] event is triggered until the user crosses the
-  /// geofence boundary.
+  /// ignores that initial state if it arrives within 30 seconds of adding the
+  /// geofence, so no [GeofenceEvent.enter] or [GeofenceEvent.exit] event is
+  /// triggered until the user crosses the geofence boundary.
   ///
   /// On Android this is configured via
   /// [AndroidGeofenceSettings.initialTriggers] instead, which is handled

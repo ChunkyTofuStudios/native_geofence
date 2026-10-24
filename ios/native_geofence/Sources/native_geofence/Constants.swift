@@ -5,5 +5,5 @@ class Constants {
     
     static let CALLBACK_DISPATCHER_KEY = "callback_dispatcher_handler"
     static let GEOFENCE_CALLBACK_DICT_KEY = "geofence_callback_dict"
-    static let GEOFENCE_AWAITING_INITIAL_STATE_LIST_KEY = "geofence_awaiting_initial_state_list"
+    static let GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY = "geofence_awaiting_initial_state_dict"
 }
