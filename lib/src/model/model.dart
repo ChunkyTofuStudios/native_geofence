@@ -31,6 +31,9 @@ class IosGeofenceSettings {
   /// event if the user is already inside the geofence.
   /// Don't worry: This initial trigger only happens when the geofence is
   /// created and NOT every time the plugin is initialized.
+  ///
+  /// When false, no event is triggered until the user crosses the geofence
+  /// boundary.
   final bool initialTrigger;
 
   const IosGeofenceSettings({

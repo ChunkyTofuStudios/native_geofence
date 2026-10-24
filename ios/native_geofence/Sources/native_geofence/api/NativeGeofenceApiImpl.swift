@@ -26,6 +26,13 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         region.notifyOnExit = geofence.triggers.contains(.exit)
         
         NativeGeofencePersistence.setRegionCallbackHandle(id: geofence.id, handle: geofence.callbackHandle)
+        if geofence.iosSettings.initialTrigger {
+            NativeGeofencePersistence.removeRegionAwaitingInitialState(id: geofence.id)
+        } else {
+            // iOS reports the state of a region as soon as monitoring starts, even if it was not
+            // requested. Mark the geofence so that LocationManagerDelegate ignores this initial state.
+            NativeGeofencePersistence.setRegionAwaitingInitialState(id: geofence.id)
+        }
         
         locationManagerDelegate.locationManager.startMonitoring(for: region)
         if geofence.iosSettings.initialTrigger {
@@ -69,6 +76,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
             if region.identifier == id {
                 locationManagerDelegate.locationManager.stopMonitoring(for: region)
                 NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+                NativeGeofencePersistence.removeRegionAwaitingInitialState(id: region.identifier)
                 removedCount += 1
             }
         }
@@ -81,6 +89,7 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         for region in locationManagerDelegate.locationManager.monitoredRegions {
             locationManagerDelegate.locationManager.stopMonitoring(for: region)
             NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+            NativeGeofencePersistence.removeRegionAwaitingInitialState(id: region.identifier)
             removedCount += 1
         }
         log.debug("Removed \(removedCount) geofence(s).")

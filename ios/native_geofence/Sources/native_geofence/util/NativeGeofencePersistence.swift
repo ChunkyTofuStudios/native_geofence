@@ -44,4 +44,26 @@ class NativeGeofencePersistence {
     private static func setRegionCallbackMapping(_ mapping: inout [AnyHashable: Any]) {
         persistentState.set(mapping, forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
     }
+    
+    static func setRegionAwaitingInitialState(id: String) {
+        var mapping = getRegionAwaitingInitialStateMapping()
+        mapping[id] = NSNumber(value: Date().timeIntervalSince1970)
+        persistentState.set(mapping, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY)
+    }
+    
+    /// Returns since when the geofence has been awaiting its initial state, or nil if it isn't.
+    static func getRegionAwaitingInitialStateSince(id: String) -> Date? {
+        guard let timestamp = getRegionAwaitingInitialStateMapping()[id] as? NSNumber else { return nil }
+        return Date(timeIntervalSince1970: timestamp.doubleValue)
+    }
+    
+    static func removeRegionAwaitingInitialState(id: String) {
+        var mapping = getRegionAwaitingInitialStateMapping()
+        guard mapping.removeValue(forKey: id) != nil else { return }
+        persistentState.set(mapping, forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY)
+    }
+    
+    private static func getRegionAwaitingInitialStateMapping() -> [String: Any] {
+        return persistentState.dictionary(forKey: Constants.GEOFENCE_AWAITING_INITIAL_STATE_DICT_KEY) ?? [:]
+    }
 }
