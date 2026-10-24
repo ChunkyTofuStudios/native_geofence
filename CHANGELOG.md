@@ -1,3 +1,10 @@
+## 1.5.0
+
+* iOS: Allow calling `NativeGeofenceManager` methods (e.g. create or remove geofences) within geofence callbacks: [#26](https://github.com/ChunkyTofuStudios/native_geofence/issues/26)
+  * Re-lands the 1.1.0 change without the regression fixed in 1.2.0, using the fix by [Mako-L](https://github.com/Mako-L) from [#34](https://github.com/ChunkyTofuStudios/native_geofence/pull/34)
+* iOS: Fixes a geofence event that arrives while a callback is running from terminating that callback: [#30](https://github.com/ChunkyTofuStudios/native_geofence/issues/30)
+  * Callbacks now run one at a time. A callback that hasn't completed after 60 seconds is terminated when a later geofence event arrives, and the events queued behind it are then delivered.
+
 ## 1.4.0
 
 * Adds `GeofenceCallbackParams.triggeredAt`: the time the geofence event was triggered, which can be earlier than when the callback runs (by [SardorbekAbdulabbozov](https://github.com/SardorbekAbdulabbozov)) [#56](https://github.com/ChunkyTofuStudios/native_geofence/pull/56)

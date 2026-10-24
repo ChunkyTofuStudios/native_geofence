@@ -75,16 +75,46 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
             return
         }
         
-        // Shutdown the engine once the Geofence event is handled
-        func cleanup() {
-            nativeGeofenceBackgroundApi = nil
-            headlessFlutterEngine?.destroyContext()
-            headlessFlutterEngine = nil
-            log.debug("Flutter engine cleanup complete.")
+        backgroundApi.geofenceTriggered(params: params, cleanup: cleanupFlutterEngine)
+        log.debug("Geofence trigger event sent.")
+        
+        // The engine may be stuck, e.g. a callback never completed. Since the app may have just resumed from
+        // suspension, give an in-progress callback a moment to complete before replacing the engine.
+        if backgroundApi.isStuck() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.HEADLESS_FLUTTER_ENGINE_GRACE_SECONDS) { [weak self] in
+                self?.replaceFlutterEngineIfStuck(backgroundApi)
+            }
+        }
+    }
+    
+    // Replaces a stuck headless Flutter engine with a new one, re-sending the events it had not processed yet.
+    // The stuck callback is not re-run.
+    private func replaceFlutterEngineIfStuck(_ backgroundApi: NativeGeofenceBackgroundApiImpl) {
+        guard backgroundApi === nativeGeofenceBackgroundApi, backgroundApi.isStuck() else {
+            return
+        }
+        log.error("Headless Flutter engine has been busy for over \(Constants.HEADLESS_FLUTTER_ENGINE_TIMEOUT_SECONDS) seconds, replacing it.")
+        
+        let pendingEvents = backgroundApi.close()
+        cleanupFlutterEngine()
+        if pendingEvents.isEmpty {
+            return
         }
         
-        nativeGeofenceBackgroundApi!.geofenceTriggered(params: params, cleanup: cleanup)
-        log.debug("Geofence trigger event sent.")
+        guard let newBackgroundApi = createFlutterEngine() else {
+            return
+        }
+        for eventParams in pendingEvents {
+            newBackgroundApi.geofenceTriggered(params: eventParams, cleanup: cleanupFlutterEngine)
+        }
+    }
+    
+    // Shutdown the engine once the Geofence events are handled
+    private func cleanupFlutterEngine() {
+        nativeGeofenceBackgroundApi = nil
+        headlessFlutterEngine?.destroyContext()
+        headlessFlutterEngine = nil
+        log.debug("Flutter engine cleanup complete.")
     }
     
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
@@ -118,6 +148,11 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         nativeGeofenceBackgroundApi = NativeGeofenceBackgroundApiImpl(binaryMessenger: headlessFlutterEngine!.binaryMessenger)
         NativeGeofenceBackgroundApiSetup.setUp(binaryMessenger: headlessFlutterEngine!.binaryMessenger, api: nativeGeofenceBackgroundApi)
         log.debug("NativeGeofenceBackgroundApi initialized.")
+
+        // Also expose the main API so geofence callbacks can create/remove geofences. The plugin registrant above
+        // does not do this since NativeGeofencePlugin only registers once, for the main Flutter engine.
+        NativeGeofenceApiSetup.setUp(binaryMessenger: headlessFlutterEngine!.binaryMessenger, api: NativeGeofenceApiImpl(locationManagerDelegate: self))
+        log.debug("NativeGeofenceApi initialized for the headless Flutter engine.")
 
         return nativeGeofenceBackgroundApi
     }

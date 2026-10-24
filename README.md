@@ -229,6 +229,8 @@ Finally, create the geofence:
 await NativeGeofenceManager.instance.createGeofence(zone1, geofenceTriggered);
 ```
 
+*Note: You can also call `NativeGeofenceManager` methods (e.g. to create or remove geofences) within a geofence callback. Callbacks are processed one at a time, so events triggered while a callback is running will be delivered after it completes. On iOS, a callback that is still running 60 seconds after it started (including time the app spent suspended) is terminated when a later geofence event arrives, so make sure your callbacks always complete, e.g. by using timeouts for network requests.*
+
 #### [Android only] Foreground work
 
 If you need to access certain APIs or run a long job in your geofence callback you can promote the runner to a foreground service. You have access to the following functions when running within a geofence callback:
