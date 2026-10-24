@@ -1,3 +1,22 @@
+## 1.3.1
+
+* Improves AGP 9 support (by [doug-shontz](https://github.com/doug-shontz))
+
+## 1.3.0
+
+* Adds Swift Package Manager support (by [doug-shontz](https://github.com/doug-shontz))
+* Adds AGP 9 support for Flutter 3.44+ (by [doug-shontz](https://github.com/doug-shontz))
+
+## 1.2.2
+
+* Upgrade dependencies
+* Update README to clarify Android minSDKVersion
+
+## 1.2.1
+
+* Upgrade dependencies
+* Add new optional step to Android setup instructions
+
 ## 1.2.0
 
 * iOS: Fixes regression: geofences callbacks not being executed after their first trigger

@@ -1,5 +1,10 @@
 plugins {
     id("com.android.application")
+    // This example targets AGP 8 for broad compatibility, so it applies the
+    // Kotlin Gradle plugin explicitly. On Flutter 3.44+ / AGP 9 Kotlin is built
+    // in — omit this line, as AGP 9 rejects an explicitly applied kotlin-android.
+    // native_geofence supports both setups. See:
+    // https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }

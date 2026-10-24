@@ -13,7 +13,7 @@ Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Chunky Tofu Studios' => 'supportl@chunkytofustudios.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'native_geofence/Sources/native_geofence/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '14.0'
 
@@ -22,5 +22,5 @@ Battery efficient Flutter Geofencing that uses native iOS and Android APIs.
   s.swift_version = '5.0'
 
   # See: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  s.resource_bundles = {'native_geofence_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  s.resource_bundles = {'native_geofence_privacy' => ['native_geofence/Sources/native_geofence/PrivacyInfo.xcprivacy']}
 end
