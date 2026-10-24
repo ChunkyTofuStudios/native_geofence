@@ -32,15 +32,8 @@ class IosGeofenceSettings {
   /// Don't worry: This initial trigger only happens when the geofence is
   /// created and NOT every time the plugin is initialized.
   ///
-  /// iOS reports the state of a geofence as soon as it starts monitoring it,
-  /// even if that state wasn't requested. When this is false, the plugin
-  /// ignores that initial state if it arrives within 30 seconds of adding the
-  /// geofence, so no [GeofenceEvent.enter] or [GeofenceEvent.exit] event is
-  /// triggered until the user crosses the geofence boundary.
-  ///
-  /// On Android this is configured via
-  /// [AndroidGeofenceSettings.initialTriggers] instead, which is handled
-  /// directly by the Android geofencing API.
+  /// When false, no event is triggered until the user crosses the geofence
+  /// boundary.
   final bool initialTrigger;
 
   const IosGeofenceSettings({
