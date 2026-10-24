@@ -12,15 +12,6 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
         self.locationManagerDelegate = LocationManagerDelegate(flutterPluginRegistrantCallback: registerPlugins)
     }
     
-    /// Used by the headless Flutter engine so that geofence callbacks can call the main API.
-    ///
-    /// Re-uses the existing `LocationManagerDelegate` instead of creating a new one. A new delegate would replace
-    /// the shared `CLLocationManager`'s (weak) delegate and get de-allocated along with the headless engine,
-    /// causing all subsequent geofence events to be dropped.
-    init(locationManagerDelegate: LocationManagerDelegate) {
-        self.locationManagerDelegate = locationManagerDelegate
-    }
-    
     func initialize(callbackDispatcherHandle: Int64) throws {
         NativeGeofencePersistence.setCallbackDispatcherHandle(callbackDispatcherHandle)
     }

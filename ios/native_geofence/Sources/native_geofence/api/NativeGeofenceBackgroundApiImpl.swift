@@ -3,16 +3,20 @@ import Flutter
 import OSLog
 
 class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
+    // Queued events stop waiting for a geofence callback that has not completed after this long. For reference, iOS
+    // only gives apps ~10-30 seconds of background time per geofence event.
+    private static let callbackTimeout: TimeInterval = 60
+    
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofenceBackgroundApiImpl")
     
     private let binaryMessenger: FlutterBinaryMessenger
     
     private var eventQueue: [GeofenceCallbackParamsWire] = .init()
-    // True while a Dart geofence callback is running. Only one callback runs at a time; events received in the
-    // meantime (e.g. triggered by geofences created within the callback) wait in the queue.
-    private var isCallbackInFlight: Bool = false
-    // When the Dart side last started work it has not finished yet: initializing, or running a callback.
-    private var busySince: UInt64 = NativeGeofenceBackgroundApiImpl.now()
+    // The Dart geofence callback that queued events wait for, nil if none. Only one callback runs at a time; events
+    // received in the meantime (e.g. triggered by geofences created within the callback) wait in the queue.
+    private var awaitedCallbackId: UUID? = nil
+    // Dart callbacks that have not completed yet, including ones no longer waited for. The engine must outlive them.
+    private var callbacksInFlight: Int = 0
     private var isClosed: Bool = false
     private var nativeGeoFenceTriggerApi: NativeGeofenceTriggerApi? = nil
     private var cleanup: (() -> Void)? = nil
@@ -61,31 +65,6 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
         log.info("demoteToBackground called. iOS does not distinguish between foreground and background, nothing to do here.")
     }
     
-    /// Whether the Dart side has been busy for too long, e.g. a geofence callback is awaiting a Future that never
-    /// completes. Queued events would otherwise wait forever.
-    func isStuck() -> Bool {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
-        
-        let isBusy = nativeGeoFenceTriggerApi == nil || isCallbackInFlight
-        let busySeconds = Double(NativeGeofenceBackgroundApiImpl.now() - busySince) / 1_000_000_000
-        return !isClosed && isBusy && busySeconds > Constants.HEADLESS_FLUTTER_ENGINE_TIMEOUT_SECONDS
-    }
-    
-    /// Stops processing events and returns the ones that were not sent to Dart yet.
-    ///
-    /// The caller is responsible for destroying the Flutter engine.
-    func close() -> [GeofenceCallbackParamsWire] {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
-        
-        isClosed = true
-        cleanup = nil
-        let pendingEvents = eventQueue
-        eventQueue.removeAll()
-        return pendingEvents
-    }
-    
     private func processQueue() {
         objc_sync_enter(self)
         defer { objc_sync_exit(self) }
@@ -95,7 +74,7 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
             return
         }
         
-        if isCallbackInFlight {
+        if awaitedCallbackId != nil {
             log.debug("A geofence callback is still running, \(self.eventQueue.count) event(s) queued.")
             return
         }
@@ -107,9 +86,11 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
             return
         }
         
-        // Now that the event queue is empty and no callback is running we can cleanup and de-allocate this class.
-        cleanup?()
-        isClosed = true
+        // Now that the event queue is empty and all callbacks have completed we can cleanup and de-allocate this class.
+        if callbacksInFlight == 0 {
+            cleanup?()
+            isClosed = true
+        }
     }
     
     private func callGeofenceTriggerApi(params: GeofenceCallbackParamsWire) {
@@ -118,8 +99,23 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
             return
         }
         log.debug("Calling Dart callback to process geofence trigger for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] event=\(String(describing: params.event)).")
-        isCallbackInFlight = true
-        busySince = NativeGeofenceBackgroundApiImpl.now()
+        let callbackId = UUID()
+        awaitedCallbackId = callbackId
+        callbacksInFlight += 1
+        // Don't let a callback that never completes (e.g. it awaits a Future that never completes) block the queue
+        // forever. Wall time keeps counting while the device sleeps, so this also fires once a suspended app resumes
+        // (changing the system clock shifts it though).
+        DispatchQueue.main.asyncAfter(wallDeadline: .now() + NativeGeofenceBackgroundApiImpl.callbackTimeout) { [weak self] in
+            guard let self else { return }
+            objc_sync_enter(self)
+            defer { objc_sync_exit(self) }
+            
+            if self.awaitedCallbackId == callbackId {
+                self.log.error("Geofence callback for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] has not completed after \(Int(NativeGeofenceBackgroundApiImpl.callbackTimeout)) seconds, no longer waiting for it.")
+                self.awaitedCallbackId = nil
+                self.processQueue()
+            }
+        }
         api.geofenceTriggered(params: params, completion: { result in
             if case .success = result {
                 self.log.debug("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] processed successfully.")
@@ -127,16 +123,14 @@ class NativeGeofenceBackgroundApiImpl: NativeGeofenceBackgroundApi {
                 self.log.error("Geofence trigger event for IDs=[\(NativeGeofenceBackgroundApiImpl.geofenceIds(params))] failed.")
             }
             objc_sync_enter(self)
-            self.isCallbackInFlight = false
+            self.callbacksInFlight -= 1
+            if self.awaitedCallbackId == callbackId {
+                self.awaitedCallbackId = nil
+            }
             objc_sync_exit(self)
             // Now that the callback is complete we can process the next item in the queue, if any.
             self.processQueue()
         })
-    }
-    
-    // Monotonic time in nanoseconds; unlike Date() it is not affected by clock changes and keeps counting during sleep.
-    private static func now() -> UInt64 {
-        return clock_gettime_nsec_np(CLOCK_MONOTONIC)
     }
     
     private static func geofenceIds(_ params: GeofenceCallbackParamsWire) -> String {
