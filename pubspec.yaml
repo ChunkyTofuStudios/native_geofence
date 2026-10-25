@@ -5,8 +5,8 @@ homepage: https://chunkytofustudios.com
 repository: https://github.com/ChunkyTofuStudios/native_geofence
 
 environment:
-  sdk: ">=3.4.3 <4.0.0"
-  flutter: ">=3.22.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:

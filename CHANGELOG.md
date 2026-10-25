@@ -1,5 +1,7 @@
 ## 1.5.0
 
+* Updates the minimum supported SDK version to Flutter 3.44/Dart 3.12.
+* Android: Migrates to built-in Kotlin, so Flutter no longer warns on AGP 9 that this plugin applies the Kotlin Gradle Plugin.
 * iOS: Allow calling `NativeGeofenceManager` methods (e.g. create or remove geofences) within geofence callbacks: [#26](https://github.com/ChunkyTofuStudios/native_geofence/issues/26)
   * Re-lands the 1.1.0 change without the regression fixed in 1.2.0 by re-using the existing `LocationManagerDelegate`, as proposed by [Mako-L](https://github.com/Mako-L) in [#34](https://github.com/ChunkyTofuStudios/native_geofence/pull/34)
 * iOS: Fixes a geofence event that arrives while a callback is running from terminating that callback: [#30](https://github.com/ChunkyTofuStudios/native_geofence/issues/30)
