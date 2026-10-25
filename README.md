@@ -59,10 +59,11 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
     </intent-filter>
 </receiver>
 <service android:name="com.chunkytofustudios.native_geofence.NativeGeofenceForegroundService"
+          android:foregroundServiceType="location"
           android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
 ```
 
-*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback.*
+*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback. Its `foregroundServiceType` is required on Android 14+ (see [Foreground work](#android-only-foreground-work)).*
 
 4. In the same file declare the neccesary permissions before the `<application ...` line:
 
@@ -73,9 +74,11 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
 <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 <uses-permission android:name="android.permission.WAKE_LOCK"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 ```
 
-*Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock permission is only required if you need to run foreground services to respond to geofence events.*
+*Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock and foreground service permissions are only required if you need to run foreground services to respond to geofence events.*
 
 5. Optional: Disable battery optimization
 
@@ -242,6 +245,8 @@ NativeGeofenceBackgroundManager.instance.demoteToBackground();
 *Note: Most tasks that complete in a few seconds, such as sending a notification, don't require your callback to run in a foreground service.*
 
 *Warning: This functionality is not well tested. Please report any bugs you find.*
+
+On Android 14+ the foreground service needs a [foreground service type](https://developer.android.com/develop/background-work/services/fgs/service-types) and that type's permission, or your app crashes when you call `promoteToForeground()`. The [Android setup](#android) steps use `location`, which fits geofencing apps because they already hold the location permissions it requires. To use a different type, change `android:foregroundServiceType` and replace `FOREGROUND_SERVICE_LOCATION` with that type's permission. Google Play also requires you to [declare your foreground service types](https://support.google.com/googleplay/android-developer/answer/13392821) in the Play Console.
 
 ### Get registered geofences
 
