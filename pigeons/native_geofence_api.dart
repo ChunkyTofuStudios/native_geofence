@@ -3,18 +3,20 @@ import 'package:pigeon/pigeon.dart';
 // After modifying this file run:
 // dart run pigeon --input pigeons/native_geofence_api.dart && dart format .
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/generated/platform_bindings.g.dart',
-  dartPackageName: 'native_geofence',
-  // Must match the podspec source_files glob. See: a714099 (SPM migration).
-  swiftOut:
-      'ios/native_geofence/Sources/native_geofence/Generated/FlutterBindings.g.swift',
-  kotlinOut:
-      'android/src/main/kotlin/com/chunkytofustudios/native_geofence/generated/FlutterBindings.g.kt',
-  kotlinOptions:
-      KotlinOptions(package: 'com.chunkytofustudios.native_geofence.generated'),
-))
-
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/generated/platform_bindings.g.dart',
+    dartPackageName: 'native_geofence',
+    // Must match the podspec source_files glob. See: a714099 (SPM migration).
+    swiftOut:
+        'ios/native_geofence/Sources/native_geofence/Generated/FlutterBindings.g.swift',
+    kotlinOut:
+        'android/src/main/kotlin/com/chunkytofustudios/native_geofence/generated/FlutterBindings.g.kt',
+    kotlinOptions: KotlinOptions(
+      package: 'com.chunkytofustudios.native_geofence.generated',
+    ),
+  ),
+)
 /// Geofencing events.
 ///
 /// See the helpful illustration at:
@@ -24,7 +26,7 @@ enum GeofenceEvent {
   exit(),
 
   /// Not supported on iOS.
-  dwell();
+  dwell(),
 }
 
 class LocationWire {
@@ -37,9 +39,7 @@ class LocationWire {
 class IosGeofenceSettingsWire {
   final bool initialTrigger;
 
-  const IosGeofenceSettingsWire({
-    required this.initialTrigger,
-  });
+  const IosGeofenceSettingsWire({required this.initialTrigger});
 }
 
 class AndroidGeofenceSettingsWire {

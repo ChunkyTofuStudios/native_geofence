@@ -36,9 +36,7 @@ class IosGeofenceSettings {
   /// boundary.
   final bool initialTrigger;
 
-  const IosGeofenceSettings({
-    this.initialTrigger = false,
-  });
+  const IosGeofenceSettings({this.initialTrigger = false});
 
   @override
   String toString() {
