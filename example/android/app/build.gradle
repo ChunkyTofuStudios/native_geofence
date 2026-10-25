@@ -35,7 +35,7 @@ if (flutterVersionName == null) {
 android {
     namespace 'com.chunkytofustudios.native_geofence_example'
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion "26.1.10909125"
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

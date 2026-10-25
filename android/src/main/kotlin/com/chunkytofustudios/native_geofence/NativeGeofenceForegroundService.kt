@@ -21,6 +21,8 @@ class NativeGeofenceForegroundService : Service() {
         private val WAKE_LOCK_TIMEOUT = 5.minutes
     }
 
+    private var wakeLock: PowerManager.WakeLock? = null
+
     override fun onBind(p0: Intent): IBinder? {
         return null
     }
@@ -29,7 +31,7 @@ class NativeGeofenceForegroundService : Service() {
         super.onCreate()
         val notification = Notifications.createForegroundServiceNotification(this)
 
-        (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.ISOLATE_HOLDER_WAKE_LOCK_TAG).apply {
                 setReferenceCounted(false)
                 acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds)
@@ -40,19 +42,29 @@ class NativeGeofenceForegroundService : Service() {
         Log.d(TAG, "Foreground service started with notification ID=$NOTIFICATION_ID.")
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        if (intent.action == Constants.ACTION_SHUTDOWN) {
-            (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.ISOLATE_HOLDER_WAKE_LOCK_TAG).apply {
-                    if (isHeld) {
-                        release()
-                    }
-                }
-            }
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == Constants.ACTION_SHUTDOWN) {
+            releaseWakeLock()
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             Log.d(TAG, "Foreground service stopped.")
         }
-        return START_STICKY
+        // The geofence callback that promoted this service does not survive its process being
+        // killed, so there is nothing for a restarted service to do.
+        return START_NOT_STICKY
+    }
+
+    override fun onDestroy() {
+        releaseWakeLock()
+        super.onDestroy()
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
+        }
+        wakeLock = null
     }
 }
