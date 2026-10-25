@@ -63,7 +63,7 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
           android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
 ```
 
-*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback. Its `foregroundServiceType` is required on Android 14+ if you call `promoteToForeground()`. See [Foreground work](#android-only-foreground-work) for how to choose a type.*
+*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback. Its `foregroundServiceType` is required on Android 14+ (see [Foreground work](#android-only-foreground-work)).*
 
 4. In the same file declare the neccesary permissions before the `<application ...` line:
 
@@ -78,7 +78,7 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 ```
 
-*Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock and foreground service permissions are only required if you need to run foreground services to respond to geofence events. `FOREGROUND_SERVICE_LOCATION` matches the `location` service type from step 3. If you choose a different type, declare its permission instead.*
+*Explanation: The coarse and fine locations are required to create a geofence. The background location permission is [also required](https://developer.android.com/develop/sensors-and-location/location/geofencing#RequestGeofences) for geofence creation on Android API level 29+. The boot completed permission is required to re-register geofences after reboot. The wake lock and foreground service permissions are only required if you need to run foreground services to respond to geofence events.*
 
 5. Optional: Disable battery optimization
 
@@ -246,27 +246,7 @@ NativeGeofenceBackgroundManager.instance.demoteToBackground();
 
 *Warning: This functionality is not well tested. Please report any bugs you find.*
 
-`promoteToForeground()` starts `NativeGeofenceForegroundService`, which calls `startForeground()`. On Android 14+ (when targeting API 34+), the service must declare a [foreground service type](https://developer.android.com/develop/background-work/services/fgs/service-types) and your app must hold that type's permission. Otherwise `startForeground()` throws a `MissingForegroundServiceTypeException` or a `SecurityException`, which crashes your app. The [Android setup](#android) steps above declare the `location` type:
-
-```xml
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
-...
-<service android:name="com.chunkytofustudios.native_geofence.NativeGeofenceForegroundService"
-          android:foregroundServiceType="location"
-          android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
-```
-
-We recommend `location`. `dataSync` is the main alternative. To switch, change `android:foregroundServiceType` and replace `FOREGROUND_SERVICE_LOCATION` with the type's permission:
-
-| | `location` (recommended) | `dataSync` |
-|---|---|---|
-| Permission | `FOREGROUND_SERVICE_LOCATION` | `FOREGROUND_SERVICE_DATA_SYNC` |
-| Runtime prerequisites | Location services must be on, and the app must hold `ACCESS_COARSE_LOCATION` or `ACCESS_FINE_LOCATION`. Starting it from the background, as a geofence callback does, also needs `ACCESS_BACKGROUND_LOCATION`. Your app already needs all of these to create geofences. If one is missing, `startForeground()` throws a `SecurityException`. | None. |
-| Time limit | None. | On Android 15+ (when targeting API 35+), 6 hours per 24 hours while the app is in the background, shared by all of the app's `dataSync` services. Opening the app resets it. When it runs out, the system calls `Service.onTimeout()` and crashes the app if the service doesn't stop within a few seconds, and later `promoteToForeground()` calls fail. This plugin doesn't handle `onTimeout()`, so always call `demoteToBackground()` when you're done. |
-| Other restrictions | | Can't be started from a `BOOT_COMPLETED` receiver on Android 15+. Google intends `dataSync` for data transfers and [suggests alternatives](https://developer.android.com/develop/background-work/services/fgs/service-types#data-sync). |
-
-If neither fits your work, pick the [type](https://developer.android.com/develop/background-work/services/fgs/service-types) that does and declare its permission. Whichever type you choose, Google Play requires apps targeting API 34+ to [declare their foreground service types](https://support.google.com/googleplay/android-developer/answer/13392821) in the Play Console.
+On Android 14+ the foreground service needs a [foreground service type](https://developer.android.com/develop/background-work/services/fgs/service-types) and that type's permission, or your app crashes when you call `promoteToForeground()`. The [Android setup](#android) steps use `location`, which fits geofencing apps because they already hold the location permissions it requires. To use a different type, change `android:foregroundServiceType` and replace `FOREGROUND_SERVICE_LOCATION` with that type's permission. Google Play also requires you to [declare your foreground service types](https://support.google.com/googleplay/android-developer/answer/13392821) in the Play Console.
 
 ### Get registered geofences
 

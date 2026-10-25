@@ -1,7 +1,6 @@
 ## Unreleased
 
 * Android: Documents the manifest entries `promoteToForeground()` needs on Android 14+: the `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_LOCATION` permissions, and `android:foregroundServiceType="location"` on `NativeGeofenceForegroundService`. Without them the app crashes with `MissingForegroundServiceTypeException` [#61](https://github.com/ChunkyTofuStudios/native_geofence/pull/61)
-  * The README explains how to choose a foreground service type, comparing `location` and `dataSync`
 
 ## 1.4.0
 
