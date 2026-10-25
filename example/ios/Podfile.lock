@@ -1,34 +1,16 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_local_notifications (0.0.1):
-    - Flutter
-  - native_geofence (1.0.0):
-    - Flutter
-  - permission_handler_apple (9.3.0):
-    - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
-  - native_geofence (from `.symlinks/plugins/native_geofence/ios`)
-  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  flutter_local_notifications:
-    :path: ".symlinks/plugins/flutter_local_notifications/ios"
-  native_geofence:
-    :path: ".symlinks/plugins/native_geofence/ios"
-  permission_handler_apple:
-    :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f
-  native_geofence: 79dbe31eef8e1b6fd798c035b239a355027f20ae
-  permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
 
-PODFILE CHECKSUM: ad2fb2aca9d5ff2ea71f690a2526bbfac1436064
+PODFILE CHECKSUM: e385406787e5023955f45b26cf8370835c1699cb
 
 COCOAPODS: 1.16.2
