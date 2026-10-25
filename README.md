@@ -121,7 +121,7 @@ In your `AppDelegate.swift` file import the plugin:
 import native_geofence
 ```
 
-and add the following near the top of the `application` function:
+and add the following near the top of the `application(_:didFinishLaunchingWithOptions:)` function:
 
 ```swift
 // Used by plugin: native_geofence
@@ -129,6 +129,10 @@ NativeGeofencePlugin.setPluginRegistrantCallback { registry in
     GeneratedPluginRegistrant.register(with: registry)
 }
 ```
+
+Keep this call there even if your app uses the [UIScene life cycle](https://docs.flutter.dev/release/breaking-changes/uiscenedelegate), don't move it to `didInitializeImplicitFlutterEngine(_:)`.
+
+*Explanation: A geofence event can launch your app in the background without a UI scene, in which case `didInitializeImplicitFlutterEngine(_:)` isn't called.*
 
 </details>
 
@@ -140,7 +144,7 @@ NativeGeofencePlugin.setPluginRegistrantCallback { registry in
 In your `AppDelegate.m` file import the plugin and define the `registerPlugins` function:
 
 ```objc
-#import <native_geofence/NativeGofencePlugin.h>
+@import native_geofence;
 
 void registerPlugins(NSObject<FlutterPluginRegistry>* registry) {
   [GeneratedPluginRegistrant registerWithRegistry:registry];
@@ -151,7 +155,7 @@ and add the following within the `application(_:didFinishLaunchingWithOptions:)`
 
 ```objc
 // Used by plugin: native_geofence
-[NativeGofencePlugin setPluginRegistrantCallback:registerPlugins];
+[NativeGeofencePlugin setPluginRegistrantCallback:registerPlugins];
 ```
 
 </details>

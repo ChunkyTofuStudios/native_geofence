@@ -6,11 +6,7 @@ import UIKit
 public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofenceApiImpl")
     
-    private let locationManagerDelegate: LocationManagerDelegate
-    
-    init(registerPlugins: FlutterPluginRegistrantCallback) {
-        self.locationManagerDelegate = LocationManagerDelegate(flutterPluginRegistrantCallback: registerPlugins)
-    }
+    private let locationManagerDelegate = LocationManagerDelegate.shared
     
     func initialize(callbackDispatcherHandle: Int64) throws {
         NativeGeofencePersistence.setCallbackDispatcherHandle(callbackDispatcherHandle)

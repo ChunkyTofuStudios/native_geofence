@@ -4,8 +4,10 @@ import OSLog
 
 // Singleton class
 class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
-    // Prevent multiple instances of CLLocationManager to avoid duplicate triggers.
-    private static var sharedLocationManager: CLLocationManager?
+    // A single CLLocationManager (and delegate) is shared by all Flutter engines to avoid duplicate triggers. It is
+    // created at app launch by NativeGeofencePlugin.setPluginRegistrantCallback, so that geofence events which launch
+    // the app in the background are delivered even if no Flutter engine is created (e.g. no UI scene is connected).
+    static let shared = LocationManagerDelegate()
     
     // Only a geofence's first state reported within this time after its creation is treated as its
     // initial state. A later first state is a boundary crossing (e.g. the initial state never came).
@@ -13,21 +15,19 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "LocationManagerDelegate")
     
-    private let flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback?
+    var flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback? = nil
     let locationManager: CLLocationManager
     
     private var headlessFlutterEngine: FlutterEngine? = nil
     private var nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl? = nil
     
-    init(flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback?) {
-        self.flutterPluginRegistrantCallback = flutterPluginRegistrantCallback
-        locationManager = LocationManagerDelegate.sharedLocationManager ?? CLLocationManager()
-        LocationManagerDelegate.sharedLocationManager = locationManager
+    private override init() {
+        locationManager = CLLocationManager()
         
         super.init()
         locationManager.delegate = self
         
-        log.debug("LocationManagerDelegate created with instance ID=\(Int.random(in: 1 ... 1000000)).")
+        log.debug("LocationManagerDelegate created.")
     }
     
     func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
