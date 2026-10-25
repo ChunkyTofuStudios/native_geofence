@@ -1,3 +1,8 @@
+## 1.5.1
+
+* iOS: Fixes geofence events that launch the app being lost with the [UIScene life cycle](https://docs.flutter.dev/release/breaking-changes/uiscenedelegate) [#45](https://github.com/ChunkyTofuStudios/native_geofence/issues/45)
+  * Keep calling `NativeGeofencePlugin.setPluginRegistrantCallback` in `application(_:didFinishLaunchingWithOptions:)`
+
 ## 1.5.0
 
 * Updates the minimum supported SDK version to Flutter 3.44/Dart 3.12.

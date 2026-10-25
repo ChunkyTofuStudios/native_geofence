@@ -5,49 +5,27 @@ import UIKit
 public class NativeGeofencePlugin: NSObject, FlutterPlugin {
     private static let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "NativeGeofencePlugin")
     
-    private static var registerPlugins: FlutterPluginRegistrantCallback? = nil
-    private static var instance: NativeGeofencePlugin? = nil
-    
-    private var nativeGeofenceApi: NativeGeofenceApiImpl? = nil
-    
-    init(registerPlugins: FlutterPluginRegistrantCallback) {
-        nativeGeofenceApi = NativeGeofenceApiImpl(registerPlugins: registerPlugins)
-    }
-    
-    /// Called from the Flutter plugins AppDelegate.swift.
+    /// Called from the Flutter plugins AppDelegate.swift, within `application(_:didFinishLaunchingWithOptions:)`.
+    ///
+    /// `callback` registers the app's plugins with the headless Flutter engine that runs geofence callbacks. This also
+    /// starts listening for geofence events, which must happen during app launch: when a geofence event launches the
+    /// app in the background there might be no Flutter engine to register this plugin with (e.g. with the UIScene life
+    /// cycle, when no UI scene is connected).
     public static func setPluginRegistrantCallback(_ callback: FlutterPluginRegistrantCallback) {
-        registerPlugins = callback
+        LocationManagerDelegate.shared.flutterPluginRegistrantCallback = callback
         log.debug("registerPlugins updated.")
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        objc_sync_enter(self)
-        defer { objc_sync_exit(self) }
-        
-        if instance == nil {
-            guard let registerPlugins else {
-                log.error("registerPlugins was nil at application launch.")
-                fatalError("Please ensure you have updated your ios/Runner/AppDelegate to call setPluginRegistrantCallback. See the plugin documentation for more information.")
-            }
-            
-            let plugin = NativeGeofencePlugin(registerPlugins: registerPlugins)
-            registrar.addApplicationDelegate(plugin)
-            instance = plugin
-            
-            log.debug("NativeGeofencePlugin registered.")
+        if LocationManagerDelegate.shared.flutterPluginRegistrantCallback == nil {
+            log.error("registerPlugins was nil at application launch.")
+            fatalError("Please ensure you have updated your ios/Runner/AppDelegate to call setPluginRegistrantCallback. See the plugin documentation for more information.")
         }
         
         // Expose the API on every Flutter engine, including the headless one running geofence callbacks so that they
-        // can create/remove geofences. All engines must share one NativeGeofenceApiImpl: a new LocationManagerDelegate
-        // would replace the shared CLLocationManager's (weak) delegate and get de-allocated along with its engine,
-        // causing all later geofence events to be dropped.
-        NativeGeofenceApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance?.nativeGeofenceApi)
+        // can create/remove geofences. All engines share the LocationManagerDelegate singleton, a new one would replace
+        // the CLLocationManager's (weak) delegate and get de-allocated along with its engine.
+        NativeGeofenceApiSetup.setUp(binaryMessenger: registrar.messenger(), api: NativeGeofenceApiImpl())
         log.debug("NativeGeofenceApi initialized.")
-    }
-    
-    public func detachFromEngine(for registrar: any FlutterPluginRegistrar) {
-        nativeGeofenceApi = nil
-        NativeGeofencePlugin.instance = nil
-        NativeGeofencePlugin.log.debug("NativeGeofencePlugin detached.")
     }
 }
