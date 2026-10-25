@@ -14,17 +14,15 @@ class NativeGeofenceException implements Exception {
     this.stacktrace,
   });
 
-  NativeGeofenceException.internal({
-    required String this.message,
-    this.details,
-  })  : code = NativeGeofenceErrorCode.pluginInternal,
-        stacktrace = StackTrace.current.toString();
+  NativeGeofenceException.internal({required String this.message, this.details})
+    : code = NativeGeofenceErrorCode.pluginInternal,
+      stacktrace = StackTrace.current.toString();
 
   NativeGeofenceException.invalidArgument({
     required String this.message,
     this.details,
-  })  : code = NativeGeofenceErrorCode.invalidArguments,
-        stacktrace = StackTrace.current.toString();
+  }) : code = NativeGeofenceErrorCode.invalidArguments,
+       stacktrace = StackTrace.current.toString();
 
   @override
   String toString() =>

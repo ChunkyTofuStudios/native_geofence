@@ -134,8 +134,10 @@ extension NativeGeofenceExceptionMapper on NativeGeofenceException {
     );
   }
 
-  static NativeGeofenceException fromException(Exception ex,
-      [StackTrace? stacktrace]) {
+  static NativeGeofenceException fromException(
+    Exception ex, [
+    StackTrace? stacktrace,
+  ]) {
     return NativeGeofenceException(
       code: NativeGeofenceErrorCode.unknown,
       message: ex.toString(),
@@ -143,8 +145,10 @@ extension NativeGeofenceExceptionMapper on NativeGeofenceException {
     );
   }
 
-  static NativeGeofenceException fromError(dynamic error,
-      [StackTrace? stacktrace]) {
+  static NativeGeofenceException fromError(
+    dynamic error, [
+    StackTrace? stacktrace,
+  ]) {
     if (error is NativeGeofenceException) {
       return error;
     }

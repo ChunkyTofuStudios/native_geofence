@@ -43,7 +43,8 @@ class NativeGeofenceManager {
     }
     if (callback == null) {
       throw NativeGeofenceException.internal(
-          message: 'Callback dispatcher is invalid.');
+        message: 'Callback dispatcher is invalid.',
+      );
     }
     return _api
         .initialize(callbackDispatcherHandle: callback.toRawHandle())
@@ -58,28 +59,35 @@ class NativeGeofenceManager {
   ///
   /// Throws [NativeGeofenceException].
   Future<void> createGeofence(
-      Geofence geofence, GeofenceCallback callback) async {
+    Geofence geofence,
+    GeofenceCallback callback,
+  ) async {
     if (geofence.id.isEmpty) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'Geofence ID cannot be empty.');
+        message: 'Geofence ID cannot be empty.',
+      );
     }
     if (geofence.triggers.isEmpty) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'Geofence triggers cannot be empty.');
+        message: 'Geofence triggers cannot be empty.',
+      );
     }
     if (!geofence.location.isValid) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'Geofence location is invalid.');
+        message: 'Geofence location is invalid.',
+      );
     }
     if (geofence.radiusMeters <= 0) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'Geofence radius must be strictly positive.');
+        message: 'Geofence radius must be strictly positive.',
+      );
     }
     if (isIos &&
         geofence.triggers.length == 1 &&
         geofence.triggers.first == GeofenceEvent.dwell) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'iOS does not support "GeofenceEvent.dwell".');
+        message: 'iOS does not support "GeofenceEvent.dwell".',
+      );
     }
     final CallbackHandle? callbackHandle;
     try {
@@ -89,7 +97,8 @@ class NativeGeofenceManager {
     }
     if (callbackHandle == null) {
       throw NativeGeofenceException.invalidArgument(
-          message: 'Callback is invalid.');
+        message: 'Callback is invalid.',
+      );
     }
     return _api
         .createGeofence(geofence: geofence.toWire(callbackHandle.toRawHandle()))
@@ -125,7 +134,8 @@ class NativeGeofenceManager {
       .getGeofences()
       .then((value) => value.map((e) => e.fromWire()).toList())
       .catchError(
-          NativeGeofenceExceptionMapper.catchError<List<ActiveGeofence>>);
+        NativeGeofenceExceptionMapper.catchError<List<ActiveGeofence>>,
+      );
 
   /// Stop receiving geofence events for a given [Geofence].
   ///

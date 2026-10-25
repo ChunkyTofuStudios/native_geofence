@@ -31,10 +31,10 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 
 1. Kotlin setup
 
-This plugin works with both Android Kotlin setups, so follow the one that matches your toolchain:
+This plugin requires Flutter 3.44+. Follow the setup that matches your app's Android Gradle Plugin (AGP) version:
 
-- **Flutter 3.44+ (AGP 9) — built-in Kotlin:** Kotlin is provided by the Android Gradle Plugin, so there is nothing to add. Do **not** apply the `kotlin-android` Gradle plugin yourself — AGP 9 rejects an explicitly applied Kotlin plugin. See Flutter's [built-in Kotlin migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin).
-- **Older Flutter (AGP 8):** apply the Kotlin Gradle plugin as usual, and ensure your Kotlin version is at least `1.9.25` (see this [guide](https://docs.flutter.dev/release/breaking-changes/kotlin-version)). The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin).
+- **AGP 9:** there is nothing to add, and do **not** apply the `kotlin-android` Gradle plugin in your app module. Flutter applies Kotlin itself while `android.builtInKotlin=false` (Flutter's default), and AGP provides it once built-in Kotlin is enabled, which requires Flutter 3.47+. See Flutter's [built-in Kotlin migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin).
+- **AGP 8:** use the Kotlin Gradle plugin as usual, declared in your `settings.gradle` with Kotlin `2.2.0` or later (see this [guide](https://docs.flutter.dev/release/breaking-changes/kotlin-version)). Add-to-app host apps must declare it too. The latest Kotlin version can be found [here](https://mvnrepository.com/artifact/org.jetbrains.kotlin.android/org.jetbrains.kotlin.android.gradle.plugin).
 
 The [example app](https://github.com/ChunkyTofuStudios/native_geofence/tree/main/example/android) demonstrates the AGP 8 setup, with comments in its Gradle files noting the AGP 9 difference.
 
@@ -231,6 +231,8 @@ Finally, create the geofence:
 ```dart
 await NativeGeofenceManager.instance.createGeofence(zone1, geofenceTriggered);
 ```
+
+*Note: You can also call `NativeGeofenceManager` methods (e.g. to create or remove geofences) within a geofence callback. Callbacks are processed one at a time, so events triggered while a callback is running will be delivered after it completes. On iOS, events stop waiting for a callback that has not completed 60 seconds after it started (including time the app spent suspended), so make sure your callbacks always complete, e.g. by using timeouts for network requests.*
 
 #### [Android only] Foreground work
 

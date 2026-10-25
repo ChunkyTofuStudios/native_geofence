@@ -20,3 +20,9 @@ linter:
     avoid_print: true
     prefer_single_quotes: true
     directives_ordering: true
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
