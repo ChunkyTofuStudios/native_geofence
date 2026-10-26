@@ -78,7 +78,6 @@ kotlin {
 
 dependencies {
     implementation 'com.google.android.gms:play-services-location:21.3.0'
-    implementation 'com.google.android.gms:play-services-maps:19.2.0'
     implementation 'com.google.guava:guava:33.4.8-android'
     implementation 'androidx.work:work-runtime-ktx:2.10.2'
     implementation 'androidx.concurrent:concurrent-futures-ktx:1.2.0'
