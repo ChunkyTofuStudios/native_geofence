@@ -2,10 +2,10 @@ package com.chunkytofustudios.native_geofence.util
 
 import android.annotation.SuppressLint
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 class Notifications {
     companion object {
@@ -18,20 +18,19 @@ class Notifications {
         // TODO: Make notification details customizable by plugin user.
         fun createForegroundServiceNotification(context: Context): Notification {
             val channelId = "native_geofence_plugin_channel"
-            val channel = NotificationChannel(
+            // Notification channels only exist on Android 26+, NotificationManagerCompat does not
+            // create the channel on earlier versions.
+            val channel = NotificationChannelCompat.Builder(
                 channelId,
-                "Geofence Events",
                 // This has to be at least IMPORTANCE_LOW.
                 // Source: https://developer.android.com/develop/background-work/services/foreground-services#start
-                NotificationManager.IMPORTANCE_LOW
-            )
+                NotificationManagerCompat.IMPORTANCE_LOW
+            ).setName("Geofence Events").build()
 
             @SuppressLint("DiscouragedApi") // Can't use R syntax in Flutter plugin.
             val imageId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
 
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
-                channel
-            )
+            NotificationManagerCompat.from(context).createNotificationChannel(channel)
             return NotificationCompat.Builder(context, channelId)
                 .setContentTitle("Processing geofence event.")
                 .setContentText("We noticed you are near a key location and are checking if we can help.")

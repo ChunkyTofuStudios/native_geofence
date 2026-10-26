@@ -42,14 +42,17 @@ extension AndroidGeofenceSettingsMapper on AndroidGeofenceSettings {
 
 extension AndroidGeofenceSettingsWireMapper on AndroidGeofenceSettingsWire {
   AndroidGeofenceSettings fromWire() {
+    final expirationDurationMillis = this.expirationDurationMillis;
+    final notificationResponsivenessMillis =
+        this.notificationResponsivenessMillis;
     return AndroidGeofenceSettings(
       initialTriggers: initialTriggers.toSet(),
       expiration: expirationDurationMillis != null
-          ? Duration(milliseconds: expirationDurationMillis!)
+          ? Duration(milliseconds: expirationDurationMillis)
           : null,
       loiteringDelay: Duration(milliseconds: loiteringDelayMillis),
       notificationResponsiveness: notificationResponsivenessMillis != null
-          ? Duration(milliseconds: notificationResponsivenessMillis!)
+          ? Duration(milliseconds: notificationResponsivenessMillis)
           : null,
     );
   }
@@ -108,12 +111,13 @@ extension ActiveGeofenceWireMapper on ActiveGeofenceWire {
 
 extension GeofenceCallbackParamsWireMapper on GeofenceCallbackParamsWire {
   GeofenceCallbackParams fromWire() {
+    final triggerTimestampMillis = this.triggerTimestampMillis;
     return GeofenceCallbackParams(
       geofences: geofences.map((e) => e.fromWire()).toList(),
       event: event,
       location: location?.fromWire(),
       triggeredAt: triggerTimestampMillis != null
-          ? DateTime.fromMillisecondsSinceEpoch(triggerTimestampMillis!)
+          ? DateTime.fromMillisecondsSinceEpoch(triggerTimestampMillis)
           : null,
     );
   }

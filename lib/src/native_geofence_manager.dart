@@ -18,11 +18,10 @@ class NativeGeofenceManager {
   /// Throws [NativeGeofenceException].
   static NativeGeofenceManager get instance {
     try {
-      _instance ??= NativeGeofenceManager._();
+      return _instance ??= NativeGeofenceManager._();
     } catch (e, stackTrace) {
       throw NativeGeofenceExceptionMapper.fromError(e, stackTrace);
     }
-    return _instance!;
   }
 
   final NativeGeofenceApi _api;
@@ -57,7 +56,9 @@ class NativeGeofenceManager {
   /// [callback] is the method to be called when a geofence event associated
   /// with [region] occurs.
   ///
-  /// Throws [NativeGeofenceException].
+  /// Throws [NativeGeofenceException], for example with
+  /// [NativeGeofenceErrorCode.geofenceLimitExceeded] when the app already has
+  /// the maximum number of geofences.
   Future<void> createGeofence(
     Geofence geofence,
     GeofenceCallback callback,
@@ -107,9 +108,14 @@ class NativeGeofenceManager {
 
   /// Re-register geofences after reboot.
   ///
-  /// Optiona: This function can be called when the autostart feature is not
+  /// Optional: This function can be called when the autostart feature is not
   /// working as it should (e.g. for some Android OEMs). This way you can ensure
   /// all Geofences are re-created at app launch.
+  ///
+  /// On Android, re-created geofences apply their
+  /// [AndroidGeofenceSettings.initialTriggers] again, so their initial events
+  /// fire again for geofences the user is already inside.
+  /// On iOS this does nothing, since iOS keeps geofences across reboots.
   ///
   /// Throws [NativeGeofenceException].
   Future<void> reCreateAfterReboot() async => _api

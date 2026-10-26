@@ -6,7 +6,7 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
   <dt><b>What is geofencing?</b></dt>
   <dd>A way for your app to be alerted when the user enters or exits a geographical region. You might use geofences to perform location-related tasks. For example, to setup reminders when the user leaves their house.</dd>
   <dt><b>What are the plugin requirements?</b></dt>
-  <dd>iOS 14+ and Android API 23+. You will also need to obtain background location permission from the user.</dd>
+  <dd>iOS 14+ and Android API 24+. You will also need to obtain background location permission from the user.</dd>
 </dl>
 
 ## Features
@@ -40,7 +40,7 @@ The [example app](https://github.com/ChunkyTofuStudios/native_geofence/tree/main
 
 NOTE: You may also need Gradle 8+ to use this plugin. See this [issue](https://github.com/ChunkyTofuStudios/native_geofence/issues/4).
 
-2. Set your `minSdkVersion` to `23` or above.
+2. Set your `minSdkVersion` to `24` or above.
 
 *Explanation: If you need to support prior Android builds it might be possible to accommodate this. Please send a PR or file a bug.*
 
@@ -236,7 +236,7 @@ Finally, create the geofence:
 await NativeGeofenceManager.instance.createGeofence(zone1, geofenceTriggered);
 ```
 
-*Note: You can also call `NativeGeofenceManager` methods (e.g. to create or remove geofences) within a geofence callback. Callbacks are processed one at a time, so events triggered while a callback is running will be delivered after it completes. On iOS, events stop waiting for a callback that has not completed 60 seconds after it started (including time the app spent suspended), so make sure your callbacks always complete, e.g. by using timeouts for network requests.*
+*Note: You can also call `NativeGeofenceManager` methods (e.g. to create or remove geofences) within a geofence callback. Callbacks are processed one at a time, so events triggered while a callback is running will be delivered after it completes. Events stop waiting for a callback that has not completed 60 seconds after it started (on iOS including time the app spent suspended), so make sure your callbacks always complete, e.g. by using timeouts for network requests. On Android, run callbacks that take longer as a [foreground service](#android-only-foreground-work).*
 
 #### [Android only] Foreground work
 
@@ -321,6 +321,7 @@ Pull requests are welcome.
 ## Known Issues
 
 * **iOS:** After reboot, the first geofence event is triggered twice, one immediatly after the other. We recommend checking the last trigger time of a geofence in your app to discard duplicates.
+* **Android:** Geofences are re-created after reboot, and when calling `reCreateAfterReboot()`, which applies their `initialTriggers` again: e.g. with `initialTriggers: {GeofenceEvent.enter}` you get another enter event for each geofence the user is already inside.
 * **Android:** The emulator does not trigger geofence events if there are no apps accessing the device location. This is an [emulator issue](https://www.b4x.com/android/forum/threads/solved-sanity-check-does-the-android-emulator-work-with-geofences.139196/page-2#post-881415). As a workaround you can open Google Maps to get a location fix which will in turn trigger the geofence.
 
 ## Author

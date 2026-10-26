@@ -33,12 +33,7 @@ class NativeGeofencePersistence {
     }
     
     private static func getRegionCallbackMapping() -> [AnyHashable: Any] {
-        var callbackDict = persistentState.dictionary(forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
-        if callbackDict == nil {
-            callbackDict = [:]
-            persistentState.set(callbackDict, forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY)
-        }
-        return callbackDict!
+        return persistentState.dictionary(forKey: Constants.GEOFENCE_CALLBACK_DICT_KEY) ?? [:]
     }
     
     private static func setRegionCallbackMapping(_ mapping: inout [AnyHashable: Any]) {

@@ -167,6 +167,16 @@ enum NativeGeofenceErrorCode {
   /// This can happen if the callback function signature has changed or due to
   /// plugin contract changes.
   callbackInvalid,
+
+  /// The geofence could not be created because the app already has the
+  /// maximum number of geofences the platform allows.
+  ///
+  /// On iOS an app can monitor up to 20 regions, including regions monitored
+  /// by other plugins or SDKs in the app.
+  /// On Android an app can register up to 100 geofences.
+  ///
+  /// Remove geofences that are no longer needed before creating new ones.
+  geofenceLimitExceeded,
 }
 
 class LocationWire {
