@@ -1,3 +1,8 @@
+## 1.6.0
+
+* Android: Raises `minSdkVersion` from 23 to 24, Flutter's default. Apps that set 23 need to raise it.
+* Android: Fixes geofence callbacks failing on Android 7 (API 24-25), where the plugin called notification and foreground service APIs that only exist on Android 8+ (found in the forks of [danqulogy](https://github.com/danqulogy) and [yarith28](https://github.com/yarith28))
+
 ## 1.5.1
 
 * iOS: Fixes geofence events that launch the app being lost with the [UIScene life cycle](https://docs.flutter.dev/release/breaking-changes/uiscenedelegate) [#45](https://github.com/ChunkyTofuStudios/native_geofence/issues/45)
