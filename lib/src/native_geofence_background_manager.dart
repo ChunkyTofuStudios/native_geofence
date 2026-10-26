@@ -12,12 +12,14 @@ class NativeGeofenceBackgroundManager {
   /// WARNING: Can only be accessed within Geofence callbacks. Trying to access
   /// this anywhere else will throw an [AssertionError].
   static NativeGeofenceBackgroundManager get instance {
-    assert(
-      _instance != null,
-      'NativeGeofenceBackgroundManager has not been initialized yet; '
-      'Are you running within a Geofence callback?',
-    );
-    return _instance!;
+    final instance = _instance;
+    if (instance == null) {
+      throw AssertionError(
+        'NativeGeofenceBackgroundManager has not been initialized yet; '
+        'Are you running within a Geofence callback?',
+      );
+    }
+    return instance;
   }
 
   final NativeGeofenceBackgroundApi _api;

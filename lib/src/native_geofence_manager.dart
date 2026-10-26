@@ -18,11 +18,10 @@ class NativeGeofenceManager {
   /// Throws [NativeGeofenceException].
   static NativeGeofenceManager get instance {
     try {
-      _instance ??= NativeGeofenceManager._();
+      return _instance ??= NativeGeofenceManager._();
     } catch (e, stackTrace) {
       throw NativeGeofenceExceptionMapper.fromError(e, stackTrace);
     }
-    return _instance!;
   }
 
   final NativeGeofenceApi _api;
