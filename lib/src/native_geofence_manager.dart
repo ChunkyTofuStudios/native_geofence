@@ -109,9 +109,14 @@ class NativeGeofenceManager {
 
   /// Re-register geofences after reboot.
   ///
-  /// Optiona: This function can be called when the autostart feature is not
+  /// Optional: This function can be called when the autostart feature is not
   /// working as it should (e.g. for some Android OEMs). This way you can ensure
   /// all Geofences are re-created at app launch.
+  ///
+  /// On Android, re-created geofences apply their
+  /// [AndroidGeofenceSettings.initialTriggers] again, so their initial events
+  /// fire again for geofences the user is already inside.
+  /// On iOS this does nothing, since iOS keeps geofences across reboots.
   ///
   /// Throws [NativeGeofenceException].
   Future<void> reCreateAfterReboot() async => _api

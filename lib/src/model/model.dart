@@ -51,6 +51,10 @@ class AndroidGeofenceSettings {
   /// immediately if the user is already inside the geofence.
   /// Don't worry: This initial trigger only happens when the geofence is
   /// created and NOT every time the plugin is initialized.
+  ///
+  /// However, geofences are created again after a device reboot, and when
+  /// calling `NativeGeofenceManager.reCreateAfterReboot()`. The initial
+  /// triggers then fire again for geofences the user is already inside.
   final Set<GeofenceEvent> initialTriggers;
 
   /// The geofence will be removed automatically after this period of time.
