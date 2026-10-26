@@ -13,6 +13,12 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     // initial state. A later first state is a boundary crossing (e.g. the initial state never came).
     private static let initialStateTimeout: TimeInterval = 30
     
+    // iOS reports whether monitoring a region started, so this is only a fallback in case it doesn't.
+    private static let monitoringStartTimeout: TimeInterval = 10
+    
+    // The number of regions an app can monitor, which iOS does not expose.
+    private static let maxMonitoredRegions = 20
+    
     private let log = Logger(subsystem: Constants.PACKAGE_NAME, category: "LocationManagerDelegate")
     
     var flutterPluginRegistrantCallback: FlutterPluginRegistrantCallback? = nil
@@ -20,6 +26,15 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
     
     private var headlessFlutterEngine: FlutterEngine? = nil
     private var nativeGeofenceBackgroundApi: NativeGeofenceBackgroundApiImpl? = nil
+    
+    private struct PendingMonitoringStart {
+        let id = UUID()
+        let completion: (Result<Void, any Error>) -> Void
+    }
+    
+    // createGeofence completions waiting for iOS to report whether monitoring started, by region ID.
+    // Only accessed on the main thread, which the delegate methods are called on.
+    private var pendingMonitoringStarts: [String: [PendingMonitoringStart]] = [:]
     
     private override init() {
         locationManager = CLLocationManager()
@@ -87,8 +102,85 @@ class LocationManagerDelegate: NSObject, CLLocationManagerDelegate {
         log.debug("Geofence trigger event sent.")
     }
     
+    func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion) {
+        log.debug("didStartMonitoringFor geofence ID: \(region.identifier)")
+        completeMonitoringStart(regionId: region.identifier, result: .success(()))
+    }
+    
     func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: any Error) {
         log.error("monitoringDidFailFor: \(region?.identifier ?? "nil") withError: \(error)")
+        guard let region else {
+            return
+        }
+        
+        guard let monitoringError = LocationManagerDelegate.monitoringError(error, region: region, manager: manager) else {
+            // The region is monitored, only its setup or events are delayed.
+            completeMonitoringStart(regionId: region.identifier, result: .success(()))
+            return
+        }
+        if !manager.monitoredRegions.contains(where: { $0.identifier == region.identifier }) {
+            NativeGeofencePersistence.removeRegionCallbackHandle(id: region.identifier)
+            NativeGeofencePersistence.removeRegionAwaitingInitialState(id: region.identifier)
+        }
+        completeMonitoringStart(regionId: region.identifier, result: .failure(monitoringError))
+    }
+    
+    // Calls the completion once iOS reports whether monitoring the region started.
+    func awaitMonitoringStart(regionId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        let pending = PendingMonitoringStart(completion: completion)
+        pendingMonitoringStarts[regionId, default: []].append(pending)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + LocationManagerDelegate.monitoringStartTimeout) {
+            guard var pendings = self.pendingMonitoringStarts[regionId],
+                  let index = pendings.firstIndex(where: { $0.id == pending.id }) else {
+                return
+            }
+            pendings.remove(at: index)
+            self.pendingMonitoringStarts[regionId] = pendings.isEmpty ? nil : pendings
+            self.log.warning("iOS did not report whether monitoring geofence ID=\(regionId) started, assuming it did.")
+            pending.completion(.success(()))
+        }
+    }
+    
+    private func completeMonitoringStart(regionId: String, result: Result<Void, any Error>) {
+        for pending in pendingMonitoringStarts.removeValue(forKey: regionId) ?? [] {
+            pending.completion(result)
+        }
+    }
+    
+    // Maps an error monitoring a region to the error createGeofence fails with, or nil if the region is
+    // still monitored and only its setup or events are delayed.
+    private static func monitoringError(_ error: any Error, region: CLRegion, manager: CLLocationManager) -> PigeonError? {
+        let details = String(describing: error)
+        switch (error as? CLError)?.code {
+        case .regionMonitoringSetupDelayed, .regionMonitoringResponseDelayed:
+            return nil
+        case .denied, .regionMonitoringDenied:
+            return PigeonError(
+                code: String(NativeGeofenceErrorCode.missingLocationPermission.rawValue),
+                message: "Location permission is required to monitor geofences.",
+                details: details
+            )
+        // iOS reports both a too large radius and too many regions as regionMonitoringFailure.
+        case .regionMonitoringFailure where ((region as? CLCircularRegion)?.radius ?? 0) > manager.maximumRegionMonitoringDistance:
+            return PigeonError(
+                code: String(NativeGeofenceErrorCode.invalidArguments.rawValue),
+                message: "The geofence radius exceeds the maximum of \(Int(manager.maximumRegionMonitoringDistance)) meters.",
+                details: details
+            )
+        case .regionMonitoringFailure where manager.monitoredRegions.count >= maxMonitoredRegions:
+            return PigeonError(
+                code: String(NativeGeofenceErrorCode.geofenceLimitExceeded.rawValue),
+                message: "iOS allows an app to monitor up to \(maxMonitoredRegions) regions, including those of other plugins or SDKs.",
+                details: details
+            )
+        default:
+            return PigeonError(
+                code: String(NativeGeofenceErrorCode.pluginInternal.rawValue),
+                message: "Failed to monitor the geofence: \(error.localizedDescription)",
+                details: details
+            )
+        }
     }
     
     private func createFlutterEngine() -> NativeGeofenceBackgroundApiImpl? {

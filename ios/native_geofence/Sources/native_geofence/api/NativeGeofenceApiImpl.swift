@@ -30,14 +30,15 @@ public class NativeGeofenceApiImpl: NSObject, NativeGeofenceApi {
             NativeGeofencePersistence.setRegionAwaitingInitialState(id: geofence.id)
         }
         
+        // Completes once iOS reports whether monitoring started, so that failures (e.g. too many
+        // regions) are returned to Dart.
+        locationManagerDelegate.awaitMonitoringStart(regionId: geofence.id, completion: completion)
         locationManagerDelegate.locationManager.startMonitoring(for: region)
         if geofence.iosSettings.initialTrigger {
             locationManagerDelegate.locationManager.requestState(for: region)
         }
         
-        log.debug("Created geofence ID=\(geofence.id).")
-        
-        completion(.success(()))
+        log.debug("Requested monitoring of geofence ID=\(geofence.id).")
     }
     
     func reCreateAfterReboot() throws {

@@ -20,6 +20,8 @@ import com.chunkytofustudios.native_geofence.receivers.NativeGeofenceBroadcastRe
 import com.chunkytofustudios.native_geofence.util.ActiveGeofenceWires
 import com.chunkytofustudios.native_geofence.util.GeofenceWires
 import com.chunkytofustudios.native_geofence.util.NativeGeofencePersistence
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 
@@ -27,6 +29,9 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
     companion object {
         @JvmStatic
         private val TAG = "NativeGeofenceApiImpl"
+
+        // Android allows an app to register up to 100 geofences.
+        private const val MAX_GEOFENCES = 100
     }
 
     private val geofencingClient = LocationServices.getGeofencingClient(context)
@@ -193,6 +198,19 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                     }
                 }
 
+                if (isGeofenceLimitExceeded(it, geofence.id)) {
+                    callback?.invoke(
+                        Result.failure(
+                            FlutterError(
+                                NativeGeofenceErrorCode.GEOFENCE_LIMIT_EXCEEDED.raw.toString(),
+                                "Android allows an app to register up to $MAX_GEOFENCES geofences.",
+                                it.toString()
+                            )
+                        )
+                    )
+                    return@addOnFailureListener
+                }
+
                 callback?.invoke(
                     Result.failure(
                         FlutterError(
@@ -203,5 +221,18 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
                 )
             }
         }
+    }
+
+    private fun isGeofenceLimitExceeded(error: Exception, geofenceId: String): Boolean {
+        if ((error as? ApiException)?.statusCode == GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES) {
+            return true
+        }
+        // Play services can also report the limit as a generic error, e.g. "10: Maximum package
+        // geofence allowance reached".
+        if (error.message?.contains("package geofence allowance reached", ignoreCase = true) == true) {
+            return true
+        }
+        // In case that wording changes, also check how many geofences are registered.
+        return NativeGeofencePersistence.getAllGeofenceIds(context).count { it != geofenceId } >= MAX_GEOFENCES
     }
 }

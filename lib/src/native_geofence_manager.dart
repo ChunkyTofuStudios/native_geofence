@@ -57,7 +57,9 @@ class NativeGeofenceManager {
   /// [callback] is the method to be called when a geofence event associated
   /// with [region] occurs.
   ///
-  /// Throws [NativeGeofenceException].
+  /// Throws [NativeGeofenceException], for example with
+  /// [NativeGeofenceErrorCode.geofenceLimitExceeded] when the app already has
+  /// the maximum number of geofences.
   Future<void> createGeofence(
     Geofence geofence,
     GeofenceCallback callback,

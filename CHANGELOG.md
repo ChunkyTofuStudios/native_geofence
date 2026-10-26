@@ -4,6 +4,8 @@
 * Android: Fixes geofence callbacks failing on Android 7 (API 24-25), where the plugin called notification and foreground service APIs that only exist on Android 8+ (found in the forks of [danqulogy](https://github.com/danqulogy) and [yarith28](https://github.com/yarith28))
 * Android: Fixes a failed geofence callback (e.g. one whose callback dispatcher can't be found) causing every later callback to be skipped, until no geofence event arrived for about a day (found in the fork of [yarith28](https://github.com/yarith28))
 * Android: Fixes geofences created with different callbacks all running the callback of the most recently created geofence (found in the fork of [yarith28](https://github.com/yarith28))
+* Adds `NativeGeofenceErrorCode.geofenceLimitExceeded`, which `createGeofence` throws when the app already has the maximum number of geofences: 20 regions per app on iOS, including those of other plugins or SDKs, and 100 geofences on Android.
+* iOS: `createGeofence` now waits for iOS to start monitoring the geofence, and throws a `NativeGeofenceException` if iOS can't monitor it, e.g. `geofenceLimitExceeded`. Previously it always succeeded.
 
 ## 1.5.1
 
