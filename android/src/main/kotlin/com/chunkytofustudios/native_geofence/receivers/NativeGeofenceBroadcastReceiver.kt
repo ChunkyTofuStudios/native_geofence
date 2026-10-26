@@ -40,8 +40,9 @@ class NativeGeofenceBroadcastReceiver : BroadcastReceiver() {
         val workManager = WorkManager.getInstance(context)
         val work = workManager.beginUniqueWork(
             Constants.GEOFENCE_CALLBACK_WORK_GROUP,
-            // Process geofence callbacks sequentially.
-            ExistingWorkPolicy.APPEND,
+            // Process geofence callbacks sequentially. Unlike APPEND, APPEND_OR_REPLACE starts a new
+            // chain after a failed callback, instead of failing every callback appended to it.
+            ExistingWorkPolicy.APPEND_OR_REPLACE,
             workRequest
         )
         work.enqueue()
