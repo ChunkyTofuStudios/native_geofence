@@ -22,6 +22,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor.DartCallback
 import io.flutter.view.FlutterCallbackInformation
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.seconds
 
 class NativeGeofenceBackgroundWorker(
     private val context: Context,
@@ -33,7 +34,15 @@ class NativeGeofenceBackgroundWorker(
         // TODO: Consider using random ID.
         private const val NOTIFICATION_ID = 493620
         private val flutterLoader = FlutterInjector.instance().flutterLoader()
+
+        // Callbacks queued behind a geofence callback stop waiting for it if it has not completed
+        // after this long, as on iOS.
+        private val CALLBACK_TIMEOUT = 60.seconds
     }
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private var callbackTimeout: Runnable? = null
 
     private var flutterEngine: FlutterEngine? = null
 
@@ -133,6 +142,22 @@ class NativeGeofenceBackgroundWorker(
             return
         }
 
+        // Don't let a callback that never completes block the callbacks queued behind it. E.g. if its
+        // Dart function no longer exists after an app update, looking it up fails with an error that
+        // skips the Dart error handling, so it never replies. The callback keeps running, and its
+        // engine is destroyed once it completes.
+        val timeout = Runnable {
+            Log.e(
+                TAG,
+                "Geofence callback for IDs=${params.geofences.map { it.id }} has not completed after " +
+                        "${CALLBACK_TIMEOUT.inWholeSeconds} seconds, no longer waiting for it."
+            )
+            // WorkManager fails the work queued behind failed work, so this has to be a success.
+            completer?.set(Result.success())
+        }
+        callbackTimeout = timeout
+        mainHandler.postDelayed(timeout, CALLBACK_TIMEOUT.inWholeMilliseconds)
+
         nativeGeofenceTriggerApi.geofenceTriggered(params) {
             stopEngine(Result.success())
         }
@@ -140,6 +165,7 @@ class NativeGeofenceBackgroundWorker(
 
     private fun stopEngine(result: Result?) {
         val fetchDuration = System.currentTimeMillis() - startTime
+        callbackTimeout?.let { mainHandler.removeCallbacks(it) }
 
         // No result indicates we were signalled to stop by WorkManager. The result is already
         // STOPPED, so no need to resolve another one.

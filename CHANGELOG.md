@@ -9,6 +9,7 @@
 * Android: Expired geofences are no longer returned by `getRegisteredGeofenceIds()` and `getRegisteredGeofences()`, and re-creating geofences after a reboot or with `reCreateAfterReboot()` keeps their expiration instead of restarting it. Applies to geofences created with 1.6.0 or later (found in the fork of [yarith28](https://github.com/yarith28))
 * Android: Documents that `AndroidGeofenceSettings.initialTriggers` fire again when geofences are re-created after a reboot or with `reCreateAfterReboot()`.
 * Android: Removes the unused `play-services-maps` dependency (found in the fork of [thebigtank](https://github.com/thebigtank))
+* Android: Fixes a geofence callback that never completes, e.g. because its function was renamed or moved in an app update, blocking every later callback for up to 10 minutes. As on iOS, events stop waiting for a callback that has not completed after 60 seconds.
 
 ## 1.5.1
 
