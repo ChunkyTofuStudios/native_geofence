@@ -6,6 +6,7 @@
 * Android: Fixes geofences created with different callbacks all running the callback of the most recently created geofence (found in the fork of [yarith28](https://github.com/yarith28))
 * Adds `NativeGeofenceErrorCode.geofenceLimitExceeded`, which `createGeofence` throws when the app already has the maximum number of geofences: 20 regions per app on iOS, including those of other plugins or SDKs, and 100 geofences on Android.
 * iOS: `createGeofence` now waits for iOS to start monitoring the geofence, and throws a `NativeGeofenceException` if iOS can't monitor it, e.g. `geofenceLimitExceeded`. Previously it always succeeded.
+* Android: Expired geofences are no longer returned by `getRegisteredGeofenceIds()` and `getRegisteredGeofences()`, and re-creating geofences after a reboot or with `reCreateAfterReboot()` keeps their expiration instead of restarting it. Applies to geofences created with 1.6.0 or later (found in the fork of [yarith28](https://github.com/yarith28))
 
 ## 1.5.1
 

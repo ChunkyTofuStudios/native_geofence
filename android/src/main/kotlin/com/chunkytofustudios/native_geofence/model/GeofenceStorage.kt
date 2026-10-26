@@ -12,10 +12,13 @@ class GeofenceStorage(
     private val triggers: List<GeofenceEvent>,
     private val iosSettings: IosGeofenceSettingsStorage,
     private val androidSettings: AndroidGeofenceSettingsStorage,
-    private val callbackHandle: Long
+    private val callbackHandle: Long,
+    // When the geofence expires, in milliseconds since the epoch. Null if it never expires, or if it
+    // was saved by a version of the plugin before 1.6.0.
+    private val expiresAtMillis: Long? = null
 ) {
     companion object {
-        fun fromWire(e: GeofenceWire): GeofenceStorage {
+        fun fromWire(e: GeofenceWire, createdAtMillis: Long): GeofenceStorage {
             return GeofenceStorage(
                 e.id,
                 LocationStorage.fromWire(e.location),
@@ -23,13 +26,20 @@ class GeofenceStorage(
                 e.triggers,
                 IosGeofenceSettingsStorage.fromWire(e.iosSettings),
                 AndroidGeofenceSettingsStorage.fromWire(e.androidSettings),
-                e.callbackHandle
+                e.callbackHandle,
+                e.androidSettings.expirationDurationMillis?.let { createdAtMillis + it }
             )
         }
     }
 
-    fun toWire(): GeofenceWire {
-        return GeofenceWire(
+    fun isExpired(nowMillis: Long): Boolean {
+        return expiresAtMillis != null && nowMillis >= expiresAtMillis
+    }
+
+    // If nowMillis is set, the expiration is the time the geofence has left at that time, instead of
+    // the duration it was created with.
+    fun toWire(nowMillis: Long? = null): GeofenceWire {
+        val wire = GeofenceWire(
             id,
             location.toWire(),
             radiusMeters,
@@ -37,6 +47,12 @@ class GeofenceStorage(
             iosSettings.toWire(),
             androidSettings.toWire(),
             callbackHandle
+        )
+        if (nowMillis == null || expiresAtMillis == null) {
+            return wire
+        }
+        return wire.copy(
+            androidSettings = wire.androidSettings.copy(expirationDurationMillis = expiresAtMillis - nowMillis)
         )
     }
 }

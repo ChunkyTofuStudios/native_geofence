@@ -52,7 +52,9 @@ class NativeGeofenceApiImpl(private val context: Context) : NativeGeofenceApi {
     }
 
     override fun reCreateAfterReboot() {
-        val geofences = NativeGeofencePersistence.getAllGeofences(context)
+        // Re-create geofences with the time they have left, so that they still expire when they were
+        // meant to.
+        val geofences = NativeGeofencePersistence.getAllGeofences(context, remainingExpiration = true)
         for (geofence in geofences) {
             createGeofenceHelper(geofence, false, null)
         }
