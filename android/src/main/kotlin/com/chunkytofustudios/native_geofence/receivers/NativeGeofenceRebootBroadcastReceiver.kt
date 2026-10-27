@@ -12,7 +12,17 @@ class NativeGeofenceRebootBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.i(TAG, "Boot completed broadcast received. Re-creating geofences!")
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED ->
+                Log.i(TAG, "Boot completed broadcast received. Re-creating geofences!")
+            // Play services removes the app's geofences when the app is updated.
+            Intent.ACTION_MY_PACKAGE_REPLACED ->
+                Log.i(TAG, "App updated broadcast received. Re-creating geofences!")
+            else -> {
+                Log.w(TAG, "Ignoring unexpected broadcast: ${intent.action}")
+                return
+            }
+        }
         NativeGeofenceApiImpl(context).reCreateAfterReboot()
     }
 }
