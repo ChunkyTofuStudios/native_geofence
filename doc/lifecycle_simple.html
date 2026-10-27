@@ -451,18 +451,22 @@ function render() {
   for (const b of document.querySelectorAll(".seg button")) b.setAttribute("aria-pressed", b.dataset.pf === ui.pf ? "true" : "false");
 }
 
+// The URL hash names the platform and step, e.g. #android-5, so a step can be linked to.
+function syncHash() {
+  try { history.replaceState(null, "", `#${ui.pf}-${ui.step + 1}`); } catch (e) {}
+}
+
 function go(i) {
   const n = PLATFORMS[ui.pf].steps.length;
   ui.step = Math.max(0, Math.min(n - 1, i));
   render();
+  syncHash();
 }
 
-function setPlatform(pf) {
+function setPlatform(pf, step = 0) {
   ui.pf = pf;
-  ui.step = 0;
   build();
-  render();
-  try { history.replaceState(null, "", "#" + pf); } catch (e) {}
+  go(step);
 }
 
 document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => setPlatform(b.dataset.pf)));
@@ -474,7 +478,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") go(ui.step - 1);
 });
 narrow.addEventListener("change", () => { build(); render(); });
-setPlatform(location.hash === "#android" ? "android" : "ios");
+const linked = (location.hash || "").match(/^#(ios|android)(?:-(\d+))?$/);
+setPlatform(linked ? linked[1] : "ios", linked && linked[2] ? +linked[2] - 1 : 0);
 </script>
 </body>
 </html>
