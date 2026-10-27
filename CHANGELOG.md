@@ -7,7 +7,10 @@
 * Adds `NativeGeofenceErrorCode.geofenceLimitExceeded`, which `createGeofence` throws when the app already has the maximum number of geofences: 20 regions per app on iOS, including those of other plugins or SDKs, and 100 geofences on Android.
 * iOS: `createGeofence` now waits for iOS to start monitoring the geofence, and throws a `NativeGeofenceException` if iOS can't monitor it, e.g. `geofenceLimitExceeded`. Previously it always succeeded.
 * Android: Expired geofences are no longer returned by `getRegisteredGeofenceIds()` and `getRegisteredGeofences()`, and re-creating geofences after a reboot or with `reCreateAfterReboot()` keeps their expiration instead of restarting it. Applies to geofences created with 1.6.0 or later (found in the fork of [yarith28](https://github.com/yarith28))
-* Android: Documents that `AndroidGeofenceSettings.initialTriggers` fire again when geofences are re-created after a reboot or with `reCreateAfterReboot()`.
+* Android: Fixes geofences no longer triggering after the app is updated, until the device rebooted or the app called `reCreateAfterReboot()`. Play services removes an app's geofences when the app is updated, and `NativeGeofenceRebootBroadcastReceiver` now re-creates them.
+  * Add the `android.intent.action.MY_PACKAGE_REPLACED` action to its intent filter in your `AndroidManifest.xml` (see the README).
+  * It now ignores broadcasts other than `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`, which only the system can send, so other apps can no longer make it re-create geofences.
+* Android: Documents that `AndroidGeofenceSettings.initialTriggers` fire again when geofences are re-created after a reboot or an app update, or with `reCreateAfterReboot()`.
 * Android: Removes the unused `play-services-maps` dependency (found in the fork of [thebigtank](https://github.com/thebigtank))
 * Android: Fixes a geofence callback that never completes, e.g. because its function was renamed or moved in an app update, blocking every later callback for up to 10 minutes. As on iOS, events stop waiting for a callback that has not completed after 60 seconds.
 * Removes force unwraps (`!`) from the plugin. `NativeGeofenceBackgroundManager.instance` now throws its documented `AssertionError` outside of geofence callbacks in release builds too, instead of a null check error.

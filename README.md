@@ -18,7 +18,7 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
   * In the foreground
   * In the background
   * Terminated
-* Geofences are re-registered after device reboot
+* Geofences are re-registered after device reboot and app update
 * Fetch currently registered geofences
 * [Android] Run foreground service to handle geofence event
 
@@ -67,6 +67,7 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
           android:exported="true">
     <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED"></action>
     </intent-filter>
 </receiver>
 <service android:name="com.chunkytofustudios.native_geofence.NativeGeofenceForegroundService"
@@ -74,7 +75,7 @@ See the [example plugin](https://github.com/ChunkyTofuStudios/native_geofence/bl
           android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
 ```
 
-*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback. Its `foregroundServiceType` is required on Android 14+ (see [Foreground work](#android-only-foreground-work)).*
+*Explanation: The `NativeGeofenceBroadcastReceiver` is used to listen for geofence events the Android OS sends. The `NativeGeofenceRebootBroadcastReceiver` runs after device reboot and after your app is updated, and re-registers geofences (this is required since Android doesn't retain them). Finally, `NativeGeofenceForegroundService` is utilized when you want to run a foreground service when handling a geofence callback. Its `foregroundServiceType` is required on Android 14+ (see [Foreground work](#android-only-foreground-work)).*
 
 4. In the same file declare the neccesary permissions before the `<application ...` line:
 
@@ -332,7 +333,7 @@ Pull requests are welcome.
 ## Known Issues
 
 * **iOS:** After reboot, the first geofence event is triggered twice, one immediatly after the other. We recommend checking the last trigger time of a geofence in your app to discard duplicates.
-* **Android:** Geofences are re-created after reboot, and when calling `reCreateAfterReboot()`, which applies their `initialTriggers` again: e.g. with `initialTriggers: {GeofenceEvent.enter}` you get another enter event for each geofence the user is already inside.
+* **Android:** Geofences are re-created after reboot, after an app update, and when calling `reCreateAfterReboot()`, which applies their `initialTriggers` again: e.g. with `initialTriggers: {GeofenceEvent.enter}` you get another enter event for each geofence the user is already inside.
 * **Android:** The emulator does not trigger geofence events if there are no apps accessing the device location. This is an [emulator issue](https://www.b4x.com/android/forum/threads/solved-sanity-check-does-the-android-emulator-work-with-geofences.139196/page-2#post-881415). As a workaround you can open Google Maps to get a location fix which will in turn trigger the geofence.
 
 ## Author
