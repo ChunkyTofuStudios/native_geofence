@@ -22,6 +22,10 @@ Battery efficient Flutter geofencing plugin that uses native iOS and Android API
 * Fetch currently registered geofences
 * [Android] Run foreground service to handle geofence event
 
+## How it works
+
+Step through the [lifecycle walkthrough](https://chunkytofustudios.github.io/native_geofence/doc/lifecycle_simple.html) to see how a geofence wakes your app on iOS and Android.
+
 ## Setup
 
 <details>
@@ -311,6 +315,10 @@ This plugin is based off of [bkonyi/FlutterGeofencing](https://github.com/bkonyi
 Please file any issues, bugs, or feature requests at [GitHub](https://github.com/ChunkyTofuStudios/native_geofence/issues).
 
 Pull requests are welcome.
+
+### Lifecycle reference
+
+[`doc/lifecycle.html`](doc/lifecycle.html) is the detailed reference for how the plugin's lifecycle works on iOS and Android, with each step traced to the code: which Flutter engine and isolate runs a geofence callback, how events are queued, what is stored where, and what changes when the app is in the foreground, suspended, terminated or the device reboots. Read it before changing lifecycle code, and keep it up to date; its diagram data is the JSON block near the end of the file.
 
 ### Future work
 

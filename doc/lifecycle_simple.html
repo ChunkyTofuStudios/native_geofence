@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Geofence Lifecycle Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A visual, step-by-step picture of how a geofence wakes a Flutter app on iOS and Android with native_geofence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one picture-book stage (a map beside a phone) with a caption and big step buttons under it.
+   Boxes carry the real class and service names; captions carry the real API names. */
+:root {
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --ink: #1f2633;
+  --muted: #66718a;
+  --line: #c6d0dd;
+  --zone: #ee6a35;
+  --sys: #3a6ee8;
+  --app: #12a06a;
+  --helper: #8b5cf6;
+  --code: #6d3fe0;
+  --plug: #0d97ad;
+  --save: #d28f00;
+  --notif: #dd3f78;
+  --flow: #ee6a35;
+  --danger: #d64545;
+  --mapbg: #ddeedd;
+  --road: #ffffff;
+  --font: "Fredoka", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141c; --surface: #171e2a; --ink: #e8edf5; --muted: #95a1b8; --line: #2e3a4e;
+    --zone: #ff8a5c; --sys: #6f97ff; --app: #3fd093; --helper: #a88bff; --code: #b9a2ff;
+    --plug: #3cc7da; --save: #f5bf3c; --notif: #ff6f9c; --flow: #ff8a5c; --danger: #ff6b6b;
+    --mapbg: #1a2a20; --road: #2b3c31;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141c; --surface: #171e2a; --ink: #e8edf5; --muted: #95a1b8; --line: #2e3a4e;
+  --zone: #ff8a5c; --sys: #6f97ff; --app: #3fd093; --helper: #a88bff; --code: #b9a2ff;
+  --plug: #3cc7da; --save: #f5bf3c; --notif: #ff6f9c; --flow: #ff8a5c; --danger: #ff6b6b;
+  --mapbg: #1a2a20; --road: #2b3c31;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.4 var(--font); }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; padding-block: 22px 14px; }
+h1 { margin: 0; font: 600 clamp(1.3rem, 3vw, 1.75rem)/1.15 var(--font); text-wrap: balance; }
+.seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 999px; background: var(--surface); border: 2px solid var(--line); }
+.seg button {
+  font: 600 1rem/1 var(--font); padding: 10px 22px; border-radius: 999px; border: 0; cursor: pointer;
+  background: transparent; color: var(--muted);
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.stage-wrap { overflow-x: auto; border-radius: 28px; background: var(--surface); border: 2px solid var(--line); }
+#stage { display: block; width: 100%; height: auto; }
+#stage.portrait .lbl { font-size: 22px; }
+#stage.portrait .lbl.small { font-size: 19px; }
+#stage.portrait .ttl { font-size: 15px; }
+#stage.portrait .sub { font-size: 15px; }
+.caption { display: flex; gap: 14px; align-items: center; justify-content: center; min-height: 76px; padding-block: 18px 6px; text-align: center; }
+.num {
+  flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--zone); color: var(--surface); font: 600 1.1rem/1 var(--font); font-variant-numeric: tabular-nums;
+}
+#cap { font: 500 clamp(1.15rem, 2.4vw, 1.5rem)/1.3 var(--font); text-wrap: balance; min-width: 0; overflow-wrap: anywhere; }
+#cap code { font: 600 0.82em/1 var(--mono); padding: 3px 7px; border-radius: 7px; background: var(--surface); border: 1.5px solid var(--line); white-space: nowrap; }
+.nav { display: flex; gap: 18px; align-items: center; justify-content: center; padding-block: 10px 36px; }
+.nav button.big {
+  width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface);
+  color: var(--ink); cursor: pointer; display: grid; place-items: center; flex: none;
+}
+.nav button.big.next { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.nav button.big:disabled { opacity: 0.3; cursor: default; }
+.nav button.big svg { width: 28px; height: 28px; }
+.dots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 60vw; }
+.dots button { width: 12px; height: 12px; padding: 0; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; }
+.dots button[aria-current="step"] { background: var(--zone); transform: scale(1.35); }
+button:focus-visible { outline: 3px solid var(--zone); outline-offset: 3px; }
+
+/* Stage */
+.lbl { font: 600 17px var(--font); fill: var(--ink); text-anchor: middle; }
+.lbl.start { text-anchor: start; }
+.lbl.end { text-anchor: end; }
+.lbl.small { font-size: 15px; fill: var(--muted); }
+.ttl { font: 600 14px var(--mono); fill: var(--ink); text-anchor: middle; }
+.ttl.start, .sub.start { text-anchor: start; }
+.sub { font: 500 13px var(--font); fill: var(--muted); text-anchor: middle; }
+.fillsoft { fill: var(--c); fill-opacity: 0.12; stroke: var(--c); stroke-width: 3; }
+.solid { fill: var(--c); }
+.stroke { fill: none; stroke: var(--c); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.actor, .extra, .flow, .tk, #zz { transition: opacity 0.45s ease; }
+.actor.ghost { opacity: 0.1; }
+.halo { fill: none; stroke: var(--zone); stroke-width: 3.5; opacity: 0; }
+.hl .halo { opacity: 1; animation: halo 1.4s ease-in-out infinite; }
+.extra { opacity: 0; }
+.extra.on { opacity: 1; }
+.flow { fill: none; stroke: var(--flow); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 11 9; opacity: 0; }
+.flow.on { opacity: 1; animation: march 0.9s linear infinite; }
+.slot { fill: none; stroke: var(--c); stroke-width: 2; stroke-dasharray: 4 4; opacity: 0.6; }
+.tk { opacity: 0; }
+.tk.on { opacity: 1; }
+.app-box { fill: var(--surface); stroke: var(--line); stroke-width: 3; }
+.app-off .app-box { stroke-dasharray: 12 9; fill: none; }
+#zz { opacity: 0; }
+.app-off #zz { opacity: 1; }
+.ripple { fill: none; stroke: var(--zone); stroke-width: 3; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.zone-hl .ripple { animation: ripple 1.6s ease-out infinite; }
+.gear { transform-box: fill-box; transform-origin: center; }
+.spin .gear { animation: spin 2.6s linear infinite; }
+#person { transition: transform 1s cubic-bezier(.5, 0, .3, 1); }
+@keyframes march { to { stroke-dashoffset: -20; } }
+@keyframes halo { 50% { opacity: 0.35; } }
+@keyframes ripple { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(1.45); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .flow.on, .hl .halo, .zone-hl .ripple, .spin .gear { animation: none; }
+  .zone-hl .ripple { opacity: 0.6; }
+  #person, .actor, .extra, .flow, .tk { transition: none; }
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>How a geofence wakes your app</h1>
+  <div class="seg" role="group" aria-label="Platform">
+    <button type="button" data-pf="ios" aria-pressed="true">iOS</button>
+    <button type="button" data-pf="android" aria-pressed="false">Android</button>
+  </div>
+</header>
+<main class="wrap">
+  <div class="stage-wrap">
+    <svg id="stage" viewBox="0 0 1000 600" role="img" aria-label="Geofence lifecycle"></svg>
+  </div>
+  <div class="caption" aria-live="polite"><span class="num" id="num">1</span><span id="cap"></span></div>
+  <div class="nav">
+    <button type="button" class="big" id="back" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="dots" id="dots" role="group" aria-label="Steps"></div>
+    <button type="button" class="big next" id="next" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+</main>
+
+<script>
+// Each platform is one stage. Steps only change what is lit up, faded, moving or connected.
+// Box positions: A = main engine, A2 = storage, B = event entry, B2 = queue, C = callback engine, C2 = service.
+const PLATFORMS = {
+  ios: {
+    os: { title: "iOS · Core Location", sub: "monitors CLCircularRegion" },
+    actors: [
+      { id: "main", kind: "engine", color: "app", x: 335, y: 235, w: 135, h: 150, title: "FlutterEngine", sub: "main · UI" },
+      { id: "store", kind: "store", color: "save", x: 335, y: 470, w: 235, h: 64, title: "UserDefaults", sub: "callback handles" },
+      { id: "entry", kind: "antenna", color: "plug", x: 490, y: 235, w: 175, h: 95, title: "CLLocationManager", sub: "plugin delegate" },
+      { id: "queue", kind: "queue", color: "plug", x: 490, y: 365, w: 175, h: 75, title: "eventQueue" },
+      { id: "cb", kind: "helper", color: "helper", x: 690, y: 235, w: 175, h: 205, title: "FlutterEngine", sub: "headless" },
+      { id: "code", kind: "code", color: "code", x: 777, y: 357 },
+    ],
+    arrows: {
+      main_entry: "M472,282 H484",
+      entry_os: "M577,231 V182",
+      os_entry: "M577,180 V229",
+      entry_cb: "M667,282 H684",
+      entry_queue: "M577,332 V359",
+      queue_cb: "M667,402 H684",
+      store_cb: "M572,502 H735 V446",
+    },
+    wall: { d: "M402,231 C440,194 740,194 777,231", x: 590, y: 203 },
+    steps: [
+      { cap: "App launches. The main `FlutterEngine` runs `main()`.", app: "on", on: ["main", "entry"], hl: ["main"] },
+      { cap: "`startMonitoring(for:)` gives the region to Core Location", app: "on", on: ["main", "entry", "store"], hl: ["os", "store"], arrows: ["main_entry", "entry_os"], zones: 1 },
+      { cap: "The app is terminated. Core Location keeps monitoring.", app: "off", on: ["store"], hl: ["os"], zones: 1 },
+      { cap: "You enter the region", app: "off", on: ["store"], hl: ["zone", "os"], arrows: ["map_os"], zones: 1, inside: true },
+      { cap: "iOS relaunches the app in the background: `didDetermineState`", app: "bg", on: ["store", "entry"], hl: ["entry"], arrows: ["os_entry"], zones: 1, inside: true },
+      { cap: "The plugin starts a headless `FlutterEngine`", app: "bg", on: ["store", "entry", "cb"], hl: ["cb"], arrows: ["entry_cb"], zones: 1, inside: true },
+      { cap: "Your Dart callback runs in that engine's isolate", app: "bg", on: ["store", "entry", "cb", "code"], hl: ["code"], arrows: ["store_cb"], zones: 1, inside: true, running: true },
+      { cap: "More events wait in the plugin's `eventQueue`", app: "bg", on: ["store", "entry", "queue", "cb", "code"], hl: ["queue"], arrows: ["os_entry", "entry_queue"], zones: 1, inside: true, running: true, tickets: 2 },
+      { cap: "The same engine runs the next callback", app: "bg", on: ["store", "entry", "queue", "cb", "code"], hl: ["cb"], arrows: ["queue_cb"], zones: 1, inside: true, running: true, tickets: 1 },
+      { cap: "Queue empty: the headless engine is destroyed", app: "bg", on: ["store", "entry"], hl: ["cb"], zones: 1, inside: true },
+      { cap: "iOS suspends the app again", app: "off", on: ["store"], zones: 1, inside: true },
+      { cap: "Reboot: Core Location still has the region", app: "off", on: ["store"], hl: ["os"], zones: 1, restart: true },
+      { cap: "Even in the foreground, callbacks run in the headless engine", app: "on", on: ["main", "store", "entry", "cb", "code"], hl: ["cb"], zones: 1, inside: true, running: true, wall: true },
+    ],
+  },
+  android: {
+    os: { title: "Android · Play services", sub: "GeofencingClient geofences" },
+    actors: [
+      { id: "main", kind: "engine", color: "app", x: 335, y: 235, w: 135, h: 150, title: "FlutterEngine", sub: "main · UI" },
+      { id: "store", kind: "store", color: "save", x: 335, y: 470, w: 235, h: 64, title: "SharedPreferences", sub: "geofences + handles" },
+      { id: "entry", kind: "envelope", color: "plug", x: 490, y: 235, w: 175, h: 95, title: "BroadcastReceiver", sub: "receives the Intent" },
+      { id: "queue", kind: "queue", color: "plug", x: 490, y: 365, w: 175, h: 75, title: "WorkManager" },
+      { id: "cb", kind: "helper", color: "helper", x: 690, y: 235, w: 175, h: 205, title: "FlutterEngine", sub: "new one per Worker" },
+      { id: "code", kind: "code", color: "code", x: 777, y: 357 },
+      { id: "fgs", kind: "notif", color: "notif", x: 730, y: 470, w: 205, h: 64, title: "Foreground service", sub: "notification" },
+    ],
+    arrows: {
+      main_os: "M402,233 V182",
+      os_entry: "M577,180 V229",
+      entry_queue: "M577,332 V359",
+      queue_cb: "M667,402 H684",
+      store_cb: "M572,502 H722 V446",
+      cb_fgs: "M822,442 V464",
+      store_os: "M480,468 V182",
+    },
+    wall: { d: "M402,231 C440,194 740,194 777,231", x: 590, y: 203 },
+    steps: [
+      { cap: "App launches. The main `FlutterEngine` runs `main()`.", app: "on", on: ["main"], hl: ["main"] },
+      { cap: "`GeofencingClient.addGeofences()` registers the geofence", app: "on", on: ["main", "store"], hl: ["os", "store"], arrows: ["main_os"], zones: 1 },
+      { cap: "The app process is killed. Play services keeps the geofence.", app: "off", on: ["store"], hl: ["os"], zones: 1 },
+      { cap: "You enter the geofence", app: "off", on: ["store"], hl: ["zone", "os"], arrows: ["map_os"], zones: 1, inside: true },
+      { cap: "Play services sends a `PendingIntent` to the `BroadcastReceiver`", app: "bg", on: ["store", "entry"], hl: ["entry"], arrows: ["os_entry"], zones: 1, inside: true },
+      { cap: "The receiver enqueues a `WorkManager` job", app: "bg", on: ["store", "entry", "queue"], hl: ["queue"], arrows: ["entry_queue"], zones: 1, inside: true, tickets: 1 },
+      { cap: "The `Worker` starts a brand-new `FlutterEngine`", app: "bg", on: ["store", "queue", "cb"], hl: ["cb"], arrows: ["queue_cb"], zones: 1, inside: true, tickets: 1 },
+      { cap: "Your Dart callback runs in that engine's isolate", app: "bg", on: ["store", "queue", "cb", "code"], hl: ["code"], arrows: ["store_cb"], zones: 1, inside: true, tickets: 1, running: true },
+      { cap: "Long task? `promoteToForeground()` starts a foreground service", app: "bg", on: ["store", "queue", "cb", "code", "fgs"], hl: ["fgs"], arrows: ["cb_fgs"], zones: 1, inside: true, tickets: 1, running: true },
+      { cap: "Callback done: the engine is destroyed", app: "off", on: ["store"], hl: ["cb"], zones: 1, inside: true },
+      { cap: "Reboot: Play services forgets the geofence", app: "off", on: ["store"], hl: ["os"], zones: "lost", restart: true },
+      { cap: "`BOOT_COMPLETED`: the plugin re-adds it from `SharedPreferences`", app: "bg", on: ["store", "entry"], hl: ["os", "store"], arrows: ["os_entry", "store_os"], zones: 1 },
+      { cap: "Even in the foreground, callbacks run in a separate `FlutterEngine`", app: "on", on: ["main", "store", "cb", "code"], hl: ["cb"], zones: 1, inside: true, running: true, wall: true },
+    ],
+  },
+};
+
+const PERSON_OUT = "translate(212px, 425px)";
+const PERSON_IN = "translate(176px, 356px)";
+// Wide screens put the map beside the phone; narrow screens stack the map above it.
+const LAYOUTS = {
+  landscape: { viewBox: "0 0 1000 600", map: "", phone: "", mapArrow: "M190,236 C225,170 265,120 314,116" },
+  portrait: { viewBox: "0 0 730 940", map: "translate(230 -130)", phone: "translate(-270 340)", mapArrow: "M365,248 V386" },
+};
+const narrow = window.matchMedia("(max-width: 700px)");
+const stage = document.getElementById("stage");
+const ui = { pf: "ios", step: 0 };
+
+const label = (x, y, text, cls = "") => `<text class="lbl ${cls}" x="${x}" y="${y}">${text}</text>`;
+const halo = (x, y, w, h, r = 22) => `<rect class="halo" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/>`;
+
+function actorSVG(a) {
+  const { x, y, w, h } = a;
+  const cx = x + (w || 0) / 2;
+  const box = (dashed) => `${halo(x - 8, y - 8, w + 16, h + 16)}
+    <rect class="fillsoft" ${dashed ? 'stroke-dasharray="10 7"' : ""} x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/>
+    <text class="ttl" x="${cx}" y="${y + 24}">${a.title}</text>
+    ${a.sub ? `<text class="sub" x="${cx}" y="${y + 42}">${a.sub}</text>` : ""}`;
+  let body = "";
+  switch (a.kind) {
+    case "engine": {
+      const sx = cx - 34, sy = y + 54, sw = 68, sh = 82;
+      body = `${box(false)}
+        <rect x="${sx}" y="${sy}" width="${sw}" height="${sh}" rx="10" fill="var(--surface)" stroke="var(--c)" stroke-width="2.5"/>
+        <rect class="solid" opacity=".55" x="${sx + 9}" y="${sy + 10}" width="${sw - 18}" height="9" rx="4.5"/>
+        <rect class="solid" opacity=".3" x="${sx + 9}" y="${sy + 27}" width="22" height="22" rx="5"/>
+        <rect class="solid" opacity=".3" x="${sx + 36}" y="${sy + 29}" width="23" height="7" rx="3.5"/>
+        <rect class="solid" opacity=".3" x="${sx + 36}" y="${sy + 41}" width="16" height="7" rx="3.5"/>
+        <rect class="solid" opacity=".3" x="${sx + 9}" y="${sy + 58}" width="${sw - 18}" height="7" rx="3.5"/>`;
+      break;
+    }
+    case "helper": {
+      const ey = y + 64;
+      body = `${box(true)}
+        <path class="stroke" stroke-width="2.5" d="M${cx - 15},${ey} Q${cx},${ey - 13} ${cx + 15},${ey} Q${cx},${ey + 13} ${cx - 15},${ey} Z"/>
+        <circle class="solid" cx="${cx}" cy="${ey}" r="4"/>
+        <line class="stroke" stroke-width="2.5" x1="${cx - 13}" y1="${ey + 13}" x2="${cx + 13}" y2="${ey - 13}"/>`;
+      break;
+    }
+    case "code":
+      body = `${halo(x - 54, y - 34, 108, 96, 18)}
+        <g class="gear">
+          <circle cx="${x}" cy="${y}" r="21" fill="none" stroke="var(--c)" stroke-width="10" stroke-dasharray="6.6 6.6"/>
+          <circle class="solid" cx="${x}" cy="${y}" r="15"/>
+          <circle cx="${x}" cy="${y}" r="5.5" fill="var(--surface)"/>
+        </g>
+        <text class="sub" x="${x}" y="${y + 48}" style="fill: var(--ink)">Dart callback</text>`;
+      break;
+    case "antenna": {
+      const iy = y + 70;
+      body = `${box(false)}
+        <circle class="solid" cx="${cx}" cy="${iy}" r="6"/>
+        <path class="stroke" d="M${cx - 13},${iy - 11} A16,16 0 0 0 ${cx - 13},${iy + 11}"/>
+        <path class="stroke" d="M${cx + 13},${iy - 11} A16,16 0 0 1 ${cx + 13},${iy + 11}"/>
+        <path class="stroke" d="M${cx - 24},${iy - 19} A28,28 0 0 0 ${cx - 24},${iy + 19}"/>
+        <path class="stroke" d="M${cx + 24},${iy - 19} A28,28 0 0 1 ${cx + 24},${iy + 19}"/>`;
+      break;
+    }
+    case "envelope": {
+      const ex = cx - 24, ey = y + 54;
+      body = `${box(false)}
+        <rect x="${ex}" y="${ey}" width="48" height="32" rx="5" fill="var(--surface)" stroke="var(--c)" stroke-width="2.5"/>
+        <path class="stroke" stroke-width="2.5" d="M${ex + 3},${ey + 4} L${cx},${ey + 19} L${ex + 45},${ey + 4}"/>`;
+      break;
+    }
+    case "queue": {
+      const sw = 26, gap = 10, sx0 = cx - (3 * sw + 2 * gap) / 2;
+      let slots = "", tickets = "";
+      for (let i = 0; i < 3; i++) {
+        const sx = sx0 + i * (sw + gap);
+        slots += `<rect class="slot" x="${sx}" y="${y + 36}" width="${sw}" height="30" rx="6"/>`;
+        tickets += `<g class="tk" data-i="${i}"><rect x="${sx}" y="${y + 36}" width="${sw}" height="30" rx="6" fill="var(--zone)"/>
+          <circle cx="${sx + sw / 2}" cy="${y + 48}" r="4.5" fill="var(--surface)"/></g>`;
+      }
+      body = `${box(false)}${slots}${tickets}`;
+      break;
+    }
+    case "store": {
+      const nx = x + 16, ny = y + 10, nw = 34, nh = 44;
+      body = `${halo(x - 8, y - 8, w + 16, h + 16)}
+        <rect class="fillsoft" x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/>
+        <rect x="${nx}" y="${ny}" width="${nw}" height="${nh}" rx="5" fill="var(--surface)" stroke="var(--c)" stroke-width="2.5"/>
+        ${[10, 22, 34].map((d) => `<circle cx="${nx}" cy="${ny + d}" r="3.5" fill="var(--surface)" stroke="var(--c)" stroke-width="2"/>`).join("")}
+        ${[14, 23, 32].map((d) => `<line class="stroke" stroke-width="2" opacity=".7" x1="${nx + 9}" y1="${ny + d}" x2="${nx + nw - 7}" y2="${ny + d}"/>`).join("")}
+        <text class="ttl start" x="${x + 64}" y="${y + 29}">${a.title}</text>
+        <text class="sub start" x="${x + 64}" y="${y + 48}">${a.sub}</text>`;
+      break;
+    }
+    case "notif": {
+      const bx = x + 22, by = y + h / 2 - 2;
+      body = `${halo(x - 8, y - 8, w + 16, h + 16)}
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="var(--surface)" stroke="var(--c)" stroke-width="3"/>
+        <path class="solid" d="M${bx - 11},${by + 8} h22 l-3,-4 v-7 a8,8 0 0 0 -16,0 v7 z"/>
+        <circle class="solid" cx="${bx}" cy="${by + 12}" r="3"/>
+        <text class="ttl start" x="${x + 41}" y="${y + 29}">${a.title}</text>
+        <text class="sub start" x="${x + 41}" y="${y + 48}">${a.sub}</text>`;
+      break;
+    }
+  }
+  return `<g class="actor ghost" id="a-${a.id}" style="--c: var(--${a.color})">${body}</g>`;
+}
+
+function pin(x, y, extra = "") {
+  return `<path d="M${x},${y + 18} C${x - 10},${y + 6} ${x - 16},${y} ${x - 16},${y - 8} A16,16 0 1 1 ${x + 16},${y - 8} C${x + 16},${y} ${x + 10},${y + 6} ${x},${y + 18} Z" ${extra}/>`;
+}
+
+function build() {
+  const P = PLATFORMS[ui.pf];
+  const layout = narrow.matches ? "portrait" : "landscape";
+  const L = LAYOUTS[layout];
+  stage.setAttribute("viewBox", L.viewBox);
+  stage.classList.toggle("portrait", layout === "portrait");
+  stage.innerHTML = `
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--flow)"/>
+      </marker>
+    </defs>
+    <g transform="${L.map}">
+      <rect x="20" y="150" width="235" height="300" rx="24" fill="var(--mapbg)" stroke="var(--line)" stroke-width="2"/>
+      <path d="M20,228 C90,252 170,206 255,238" stroke="var(--road)" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M92,150 C112,250 72,352 118,450" stroke="var(--road)" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <circle cx="135" cy="300" r="72" fill="var(--zone)" fill-opacity=".16" stroke="var(--zone)" stroke-width="3" stroke-dasharray="9 7"/>
+      <circle class="ripple" cx="135" cy="300" r="72"/>
+      ${pin(135, 290, 'fill="var(--zone)"')}
+      <circle cx="135" cy="282" r="6" fill="var(--surface)"/>
+      ${label(135, 400, "Geofence")}
+      <g id="person" style="transform: ${PERSON_OUT}">
+        <circle cx="0" cy="-34" r="11" fill="var(--ink)"/>
+        <rect x="-12" y="-20" width="24" height="32" rx="11" fill="var(--ink)"/>
+      </g>
+    </g>
+    <g transform="${L.phone}">
+      <rect x="290" y="20" width="690" height="560" rx="44" fill="var(--bg)" fill-opacity=".5" stroke="var(--ink)" stroke-width="3"/>
+      <rect x="600" y="31" width="70" height="8" rx="4" fill="var(--ink)" opacity=".25"/>
+      <g class="actor" id="a-os" style="--c: var(--sys)">
+        ${halo(312, 47, 646, 136, 26)}
+        <rect class="fillsoft" x="320" y="55" width="630" height="120" rx="20"/>
+        <circle class="stroke" cx="372" cy="115" r="10"/>
+        <circle class="stroke" cx="372" cy="115" r="22" opacity=".6"/>
+        <circle class="stroke" cx="372" cy="115" r="34" opacity=".3"/>
+        <line class="stroke" x1="372" y1="115" x2="396" y2="91"/>
+        <text class="lbl start" x="424" y="110" style="font-size:22px">${P.os.title}</text>
+        <text class="ttl start" x="424" y="138" style="fill: var(--muted)">${P.os.sub}</text>
+      </g>
+      <g class="extra" id="zonepin">${pin(880, 108, 'fill="var(--zone)"')}<circle cx="880" cy="100" r="6" fill="var(--surface)"/></g>
+      <g class="extra" id="zonelost">
+        ${pin(880, 108, 'fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-dasharray="5 4"')}
+        <path d="M866,86 L894,114 M894,86 L866,114" stroke="var(--danger)" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <g class="extra" id="restart">
+        <path d="M816,115 A22,22 0 1 1 809,99" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M800,90 L813,95 L807,108" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <rect class="app-box" x="320" y="195" width="630" height="365" rx="20"/>
+      ${label(935, 222, "App process", "end small")}
+      <text id="zz" x="826" y="224" style="font: 600 20px var(--font); fill: var(--muted)">z<tspan dy="-8" style="font-size:15px">z</tspan></text>
+      ${P.actors.map(actorSVG).join("")}
+      ${Object.entries(P.arrows).map(([k, d]) => `<path class="flow" id="ar-${k}" d="${d}" marker-end="url(#ah)"/>`).join("")}
+      <g class="extra" id="wall">
+        <path d="${P.wall.d}" fill="none" stroke="var(--danger)" stroke-width="3" stroke-dasharray="6 6"/>
+        <circle cx="${P.wall.x}" cy="${P.wall.y}" r="15" fill="var(--surface)" stroke="var(--danger)" stroke-width="3"/>
+        <path d="M${P.wall.x - 6},${P.wall.y - 6} L${P.wall.x + 6},${P.wall.y + 6} M${P.wall.x + 6},${P.wall.y - 6} L${P.wall.x - 6},${P.wall.y + 6}" stroke="var(--danger)" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+    </g>
+    <path class="flow" id="ar-map_os" d="${L.mapArrow}" marker-end="url(#ah)"/>`;
+  const dots = document.getElementById("dots");
+  dots.innerHTML = P.steps.map((s, i) => `<button type="button" aria-label="Step ${i + 1}" data-i="${i}"></button>`).join("");
+}
+
+// Captions mark API names with backticks; they render as code chips.
+function captionHTML(text) {
+  return text.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])).replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+
+function render() {
+  const P = PLATFORMS[ui.pf];
+  const s = P.steps[ui.step];
+  const on = new Set(s.on || []), hl = new Set(s.hl || []), arrows = new Set(s.arrows || []);
+  stage.classList.remove("app-off", "app-bg", "app-on");
+  stage.classList.add(`app-${s.app}`);
+  stage.classList.toggle("zone-hl", hl.has("zone"));
+  stage.classList.toggle("spin", !!s.running);
+  for (const a of P.actors) {
+    const g = document.getElementById(`a-${a.id}`);
+    g.classList.toggle("ghost", !on.has(a.id));
+    g.classList.toggle("hl", hl.has(a.id));
+  }
+  document.getElementById("a-os").classList.toggle("hl", hl.has("os"));
+  for (const p of stage.querySelectorAll(".flow")) p.classList.toggle("on", arrows.has(p.id.slice(3)));
+  for (const t of stage.querySelectorAll(".tk")) t.classList.toggle("on", +t.dataset.i < (s.tickets || 0));
+  document.getElementById("zonepin").classList.toggle("on", s.zones === 1);
+  document.getElementById("zonelost").classList.toggle("on", s.zones === "lost");
+  document.getElementById("restart").classList.toggle("on", !!s.restart);
+  document.getElementById("wall").classList.toggle("on", !!s.wall);
+  document.getElementById("person").style.transform = s.inside ? PERSON_IN : PERSON_OUT;
+  document.getElementById("num").textContent = ui.step + 1;
+  document.getElementById("cap").innerHTML = captionHTML(s.cap);
+  const name = ui.pf === "ios" ? "iOS" : "Android";
+  stage.setAttribute("aria-label", `${name}, step ${ui.step + 1} of ${P.steps.length}: ${s.cap.replace(/`/g, "")}`);
+  document.querySelectorAll("#dots button").forEach((b, i) => {
+    if (i === ui.step) b.setAttribute("aria-current", "step");
+    else b.removeAttribute("aria-current");
+  });
+  document.getElementById("back").disabled = ui.step === 0;
+  document.getElementById("next").disabled = ui.step === P.steps.length - 1;
+  for (const b of document.querySelectorAll(".seg button")) b.setAttribute("aria-pressed", b.dataset.pf === ui.pf ? "true" : "false");
+}
+
+function go(i) {
+  const n = PLATFORMS[ui.pf].steps.length;
+  ui.step = Math.max(0, Math.min(n - 1, i));
+  render();
+}
+
+function setPlatform(pf) {
+  ui.pf = pf;
+  ui.step = 0;
+  build();
+  render();
+  try { history.replaceState(null, "", "#" + pf); } catch (e) {}
+}
+
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => setPlatform(b.dataset.pf)));
+document.getElementById("back").addEventListener("click", () => go(ui.step - 1));
+document.getElementById("next").addEventListener("click", () => go(ui.step + 1));
+document.getElementById("dots").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) go(+b.dataset.i); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") go(ui.step + 1);
+  if (e.key === "ArrowLeft") go(ui.step - 1);
+});
+narrow.addEventListener("change", () => { build(); render(); });
+setPlatform(location.hash === "#android" ? "android" : "ios");
+</script>
+</body>
+</html>
